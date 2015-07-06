@@ -13,7 +13,7 @@ import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
  * 
  * @param <T>
  */
-public interface DimensionField<T extends CommonIndexValue> extends
+public interface NumericDimensionField<T extends CommonIndexValue> extends
 		NumericDimensionDefinition
 {
 	/**

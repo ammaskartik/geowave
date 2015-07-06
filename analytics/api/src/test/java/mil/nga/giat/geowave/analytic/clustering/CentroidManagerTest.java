@@ -15,7 +15,7 @@ import mil.nga.giat.geowave.analytic.clustering.ClusteringUtils;
 import mil.nga.giat.geowave.analytic.clustering.CentroidManager.CentroidProcessingFn;
 import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.index.StringUtils;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 
@@ -78,7 +78,7 @@ public class CentroidManagerTest
 				1,
 				0);
 
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		final FeatureDataAdapter adapter = new FeatureDataAdapter(
 				ftype);
 

@@ -7,7 +7,7 @@ import mil.nga.giat.geowave.adapter.raster.adapter.MergeableRasterTile;
 import mil.nga.giat.geowave.adapter.raster.adapter.RasterDataAdapter;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.JobContextAdapterStore;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.JobContextIndexStore;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputKey;
@@ -21,7 +21,7 @@ public class RasterTileResizeHelper
 {
 	private RasterDataAdapter oldAdapter;
 	private RasterDataAdapter newAdapter;
-	private final Index index;
+	private final PrimaryIndex index;
 
 	public RasterTileResizeHelper(
 			final JobContext context ) {

@@ -15,7 +15,7 @@ import java.util.Set;
 
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.DistributableQuery;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
@@ -102,12 +102,12 @@ public class GeoWaveRecordReader<T> extends
 			numKeysRead = 0;
 			final Map<RangeLocationPair, CloseableIterator<?>> iteratorsPerRange = new LinkedHashMap<RangeLocationPair, CloseableIterator<?>>();
 
-			final Set<Index> indices = split.getIndices();
+			final Set<PrimaryIndex> indices = split.getIndices();
 			BigDecimal sum = BigDecimal.ZERO;
 
 			final Map<RangeLocationPair, BigDecimal> incrementalRangeSums = new LinkedHashMap<RangeLocationPair, BigDecimal>();
 
-			for (final Index i : indices) {
+			for (final PrimaryIndex i : indices) {
 				final List<RangeLocationPair> ranges = split.getRanges(i);
 				List<QueryFilter> queryFilters = null;
 				if (query != null) {

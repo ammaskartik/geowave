@@ -8,7 +8,7 @@ import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.ScannerBase;
@@ -43,7 +43,7 @@ public class SpatialDecimationQuery extends
 	private final ReferencedEnvelope envelope;
 
 	public SpatialDecimationQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final int width,
 			final int height,
 			final double pixelSize,
@@ -64,7 +64,7 @@ public class SpatialDecimationQuery extends
 
 	public SpatialDecimationQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final int width,
 			final int height,
 			final double pixelSize,
@@ -85,7 +85,7 @@ public class SpatialDecimationQuery extends
 	}
 
 	public SpatialDecimationQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final int width,
@@ -110,7 +110,7 @@ public class SpatialDecimationQuery extends
 
 	public SpatialDecimationQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final int width,

@@ -7,6 +7,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.index.Index;
 import mil.nga.giat.geowave.core.store.index.IndexStore;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloIndexStore;
 import mil.nga.giat.geowave.datastore.accumulo.util.CloseableIteratorWrapper;
@@ -27,7 +28,7 @@ public class JobContextIndexStore implements
 	private static final Class<?> CLASS = JobContextIndexStore.class;
 	private final JobContext context;
 	private final AccumuloOperations accumuloOperations;
-	private final Map<ByteArrayId, Index> indexCache = new HashMap<ByteArrayId, Index>();
+	private final Map<ByteArrayId, Index<?, ?>> indexCache = new HashMap<ByteArrayId, Index<?, ?>>();
 
 	public JobContextIndexStore(
 			final JobContext context,
@@ -39,16 +40,16 @@ public class JobContextIndexStore implements
 
 	@Override
 	public void addIndex(
-			final Index index ) {
+			final Index<?, ?> index ) {
 		indexCache.put(
 				index.getId(),
 				index);
 	}
 
 	@Override
-	public Index getIndex(
+	public Index<?, ?> getIndex(
 			final ByteArrayId indexId ) {
-		Index index = indexCache.get(indexId);
+		Index<?, ?> index = indexCache.get(indexId);
 		if (index == null) {
 			index = getIndexInternal(indexId);
 		}
@@ -61,14 +62,14 @@ public class JobContextIndexStore implements
 		if (indexCache.containsKey(indexId)) {
 			return true;
 		}
-		final Index index = getIndexInternal(indexId);
+		final Index<?, ?> index = getIndexInternal(indexId);
 		return index != null;
 	}
 
-	private Index getIndexInternal(
+	private Index<?, ?> getIndexInternal(
 			final ByteArrayId indexId ) {
 		// first try to get it from the job context
-		Index index = getIndex(
+		Index<?, ?> index = getIndex(
 				context,
 				indexId);
 		if (index == null) {
@@ -87,12 +88,12 @@ public class JobContextIndexStore implements
 	}
 
 	@Override
-	public CloseableIterator<Index> getIndices() {
+	public CloseableIterator<Index<?, ?>> getIndices() {
 		final AccumuloIndexStore indexStore = new AccumuloIndexStore(
 				accumuloOperations);
-		final CloseableIterator<Index> it = indexStore.getIndices();
+		final CloseableIterator<Index<?, ?>> it = indexStore.getIndices();
 		// cache any results
-		return new CloseableIteratorWrapper<Index>(
+		return new CloseableIteratorWrapper<Index<?, ?>>(
 				it,
 				IteratorUtils.transformedIterator(
 						it,
@@ -101,10 +102,10 @@ public class JobContextIndexStore implements
 							@Override
 							public Object transform(
 									final Object obj ) {
-								if (obj instanceof Index) {
+								if (obj instanceof Index<?, ?>) {
 									indexCache.put(
-											((Index) obj).getId(),
-											(Index) obj);
+											((Index<?, ?>) obj).getId(),
+											(Index<?, ?>) obj);
 								}
 								return obj;
 							}
@@ -113,14 +114,14 @@ public class JobContextIndexStore implements
 
 	public static void addIndex(
 			final Configuration config,
-			final Index index ) {
+			final PrimaryIndex index ) {
 		GeoWaveConfiguratorBase.addIndex(
 				CLASS,
 				config,
 				index);
 	}
 
-	protected static Index getIndex(
+	protected static PrimaryIndex getIndex(
 			final JobContext context,
 			final ByteArrayId indexId ) {
 		return GeoWaveConfiguratorBase.getIndex(
@@ -129,7 +130,7 @@ public class JobContextIndexStore implements
 				indexId);
 	}
 
-	public static Index[] getIndices(
+	public static PrimaryIndex[] getIndices(
 			final JobContext context ) {
 		return GeoWaveConfiguratorBase.getIndices(
 				CLASS,

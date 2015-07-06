@@ -136,6 +136,35 @@ public interface AccumuloOperations
 			throws TableNotFoundException;
 
 	/**
+	 * Creates a new writer that can be used by an index. The basic
+	 * implementation uses a BatchWriter but other implementations can be
+	 * replaced such as a context-based writer for bulk ingest within a
+	 * map-reduce job. This will use the createTable flag to determine if the
+	 * table should be created if it does not exist. This will also use the
+	 * enableVersioning flag to determine if the versioning iterator should be
+	 * used.
+	 * 
+	 * @param tableName
+	 *            The basic name of the table. Note that that basic
+	 *            implementation of the factory will allow for a table namespace
+	 *            to prefix this name
+	 * @param createTable
+	 *            If true and the table does not exist, it will be created. If
+	 *            false and the table does not exist, a TableNotFoundException
+	 *            will be thrown.
+	 * @param enableVersioning
+	 *            If true the versioning iterator will be used.
+	 * @return The appropriate writer
+	 * @throws TableNotFoundException
+	 *             The table does not exist in this Accumulo instance
+	 */
+	public Writer createWriter(
+			final String tableName,
+			final boolean createTable,
+			final boolean enableVersioning )
+			throws TableNotFoundException;
+
+	/**
 	 * Attaches the iterators to the specified table. This will check if the
 	 * scope is the same and if the options are the same. If the options are
 	 * different, it will use the implementation of

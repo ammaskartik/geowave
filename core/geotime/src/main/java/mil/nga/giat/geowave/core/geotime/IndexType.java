@@ -5,7 +5,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.NumericIndexStrategy;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CustomIdIndex;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 /**
  * This is an enumeration of default commonly used Indices supported (with
@@ -51,7 +51,7 @@ public enum IndexType {
 		return dimensionalityType.name() + "_" + dataType.name() + "_IDX";
 	}
 
-	public Index createDefaultIndex() {
+	public PrimaryIndex createDefaultIndex() {
 		return new CustomIdIndex(
 				createDefaultIndexStrategy(),
 				getDefaultIndexModel(),
@@ -63,19 +63,19 @@ public enum IndexType {
 	// aren't handled well in Jace/JNI
 	public static class JaceIndexType
 	{
-		public static Index createSpatialVectorIndex() {
+		public static PrimaryIndex createSpatialVectorIndex() {
 			return IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		}
 
-		public static Index createSpatialTemporalVectorIndex() {
+		public static PrimaryIndex createSpatialTemporalVectorIndex() {
 			return IndexType.SPATIAL_TEMPORAL_VECTOR.createDefaultIndex();
 		}
 
-		public static Index createSpatialRasterIndex() {
+		public static PrimaryIndex createSpatialRasterIndex() {
 			return IndexType.SPATIAL_RASTER.createDefaultIndex();
 		}
 
-		public static Index createSpatialTemporalRasterIndex() {
+		public static PrimaryIndex createSpatialTemporalRasterIndex() {
 			return IndexType.SPATIAL_TEMPORAL_VECTOR.createDefaultIndex();
 		}
 	}

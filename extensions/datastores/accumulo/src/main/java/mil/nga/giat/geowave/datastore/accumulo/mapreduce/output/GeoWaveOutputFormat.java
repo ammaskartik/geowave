@@ -14,6 +14,7 @@ import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsStore;
 import mil.nga.giat.geowave.core.store.index.Index;
 import mil.nga.giat.geowave.core.store.index.IndexStore;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.GeoWaveConfiguratorBase;
@@ -66,8 +67,8 @@ public class GeoWaveOutputFormat extends
 			}
 			final IndexStore accumuloIndexStore = new AccumuloIndexStore(
 					accumuloOperations);
-			final Index[] indices = JobContextIndexStore.getIndices(context);
-			for (final Index i : indices) {
+			final PrimaryIndex[] indices = JobContextIndexStore.getIndices(context);
+			for (final PrimaryIndex i : indices) {
 				if (!accumuloIndexStore.indexExists(i.getId())) {
 					accumuloIndexStore.addIndex(i);
 				}
@@ -95,7 +96,7 @@ public class GeoWaveOutputFormat extends
 
 	public static void addIndex(
 			final Configuration config,
-			final Index index ) {
+			final PrimaryIndex index ) {
 		JobContextIndexStore.addIndex(
 				config,
 				index);
@@ -234,10 +235,10 @@ public class GeoWaveOutputFormat extends
 		private synchronized IndexWriter getIndexWriter(
 				final ByteArrayId indexId ) {
 			if (!indexWriterCache.containsKey(indexId)) {
-				final Index index = indexStore.getIndex(indexId);
+				final Index<?, ?> index = indexStore.getIndex(indexId);
 				IndexWriter writer = null;
 				if (index != null) {
-					writer = dataStore.createIndexWriter(index);
+					writer = dataStore.createIndexWriter((PrimaryIndex) index);
 				}
 				else {
 					LOGGER.warn("Index '" + StringUtils.stringFromBinary(indexId.getBytes()) + "' does not exist");

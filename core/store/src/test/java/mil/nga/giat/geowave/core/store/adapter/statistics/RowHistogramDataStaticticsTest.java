@@ -62,12 +62,12 @@ public class RowHistogramDataStaticticsTest
 			stats1.entryIngested(
 					new DataStoreEntryInfo(
 							ids,
-							Collections.<FieldInfo> emptyList()),
+							Collections.<FieldInfo<?>> emptyList()),
 					1);
 			stats2.entryIngested(
 					new DataStoreEntryInfo(
 							ids,
-							Collections.<FieldInfo> emptyList()),
+							Collections.<FieldInfo<?>> emptyList()),
 					1);
 		}
 
@@ -90,12 +90,12 @@ public class RowHistogramDataStaticticsTest
 			stats1.entryIngested(
 					new DataStoreEntryInfo(
 							ids,
-							Collections.<FieldInfo> emptyList()),
+							Collections.<FieldInfo<?>> emptyList()),
 					1);
 			stats2.entryIngested(
 					new DataStoreEntryInfo(
 							ids,
-							Collections.<FieldInfo> emptyList()),
+							Collections.<FieldInfo<?>> emptyList()),
 					1);
 		}
 

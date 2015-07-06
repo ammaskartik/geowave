@@ -21,7 +21,7 @@ import mil.nga.giat.geowave.core.store.IngestCallback;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
 import mil.nga.giat.geowave.core.store.data.visibility.GlobalVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.visibility.UniformVisibilityWriter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.util.VisibilityTransformer;
 
 import org.opengis.feature.simple.SimpleFeature;
@@ -33,7 +33,7 @@ public class GeoWaveDataStoreComponents
 	private final GeoWaveGTDataStore GTstore;
 	private final TransactionsAllocater transactionsAllocater;
 
-	private Index currentIndex;
+	private PrimaryIndex currentIndex;
 
 	public GeoWaveDataStoreComponents(
 			final VectorDataStore dataStore,
@@ -59,7 +59,7 @@ public class GeoWaveDataStoreComponents
 		return GTstore;
 	}
 
-	public Index getCurrentIndex() {
+	public PrimaryIndex getCurrentIndex() {
 		return currentIndex;
 	}
 

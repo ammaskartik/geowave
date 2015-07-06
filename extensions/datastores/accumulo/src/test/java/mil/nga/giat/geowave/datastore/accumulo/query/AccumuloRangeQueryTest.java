@@ -21,7 +21,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.Query;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
@@ -46,7 +46,7 @@ import com.vividsolutions.jts.io.WKBWriter;
 public class AccumuloRangeQueryTest
 {
 	private DataStore mockDataStore;
-	private Index index;
+	private PrimaryIndex index;
 	private WritableDataAdapter<TestGeometry> adapter;
 	private final GeometryFactory factory = new GeometryFactory();
 	private final TestGeometry testdata = new TestGeometry(

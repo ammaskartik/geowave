@@ -110,11 +110,11 @@ public class InfoServiceImpl implements
 	public Response getIndices(
 			@PathParam("namespace")
 			final String namespace ) {
-		final List<Index> indices = AccumuloUtils.getIndices(
+		final List<Index<?, ?>> indices = AccumuloUtils.getIndices(
 				connector,
 				namespace);
 		final JSONArray indexNames = new JSONArray();
-		for (final Index index : indices) {
+		for (final Index<?, ?> index : indices) {
 			if ((index != null) && (index.getId() != null)) {
 				final JSONObject indexObj = new JSONObject();
 				indexObj.put(

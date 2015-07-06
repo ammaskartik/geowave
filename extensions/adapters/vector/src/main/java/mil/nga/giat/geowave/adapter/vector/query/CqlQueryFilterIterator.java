@@ -2,8 +2,9 @@ package mil.nga.giat.geowave.adapter.vector.query;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.filter.DistributableQueryFilter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.spi.SPIServiceRegistry;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloRowId;
 
@@ -159,7 +160,7 @@ public class CqlQueryFilterIterator extends
 			}
 			final SimpleFeature feature = dataAdapter.decode(
 					encoding,
-					new Index(
+					new PrimaryIndex(
 							null, // because we know the feature data adapter
 									// doesn't use the numeric index strategy
 									// and only the common index model to decode
@@ -228,6 +229,7 @@ public class CqlQueryFilterIterator extends
 							fileObjs[i].toString());
 				}
 				final ClassLoader urlCL = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<URLClassLoader>() {
+					@Override
 					public URLClassLoader run() {
 						final URLClassLoader ucl = new URLClassLoader(
 								fileUrls,

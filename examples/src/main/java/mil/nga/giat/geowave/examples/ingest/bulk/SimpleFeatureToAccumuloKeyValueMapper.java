@@ -10,7 +10,7 @@ import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.data.VisibilityWriter;
 import mil.nga.giat.geowave.core.store.data.visibility.UnconstrainedVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.visibility.UniformVisibilityWriter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.util.AccumuloKeyValuePair;
 import mil.nga.giat.geowave.datastore.accumulo.util.AccumuloKeyValuePairGenerator;
 
@@ -30,7 +30,7 @@ public class SimpleFeatureToAccumuloKeyValueMapper extends
 
 	private WritableDataAdapter<SimpleFeature> adapter = new FeatureDataAdapter(
 			GeonamesSimpleFeatureType.getInstance());
-	private final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+	private final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 	private final VisibilityWriter<SimpleFeature> visibilityWriter = new UniformVisibilityWriter<SimpleFeature>(
 			new UnconstrainedVisibilityHandler<SimpleFeature, Object>());
 	private AccumuloKeyValuePairGenerator<SimpleFeature> generator = new AccumuloKeyValuePairGenerator<SimpleFeature>(

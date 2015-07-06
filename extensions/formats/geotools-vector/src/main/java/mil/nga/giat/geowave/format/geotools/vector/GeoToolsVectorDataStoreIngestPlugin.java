@@ -13,7 +13,7 @@ import mil.nga.giat.geowave.core.ingest.GeoWaveData;
 import mil.nga.giat.geowave.core.ingest.local.LocalFileIngestPlugin;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.apache.log4j.Logger;
 import org.geotools.data.DataStore;
@@ -36,7 +36,7 @@ public class GeoToolsVectorDataStoreIngestPlugin implements
 {
 	private final static Logger LOGGER = Logger.getLogger(GeoToolsVectorDataStoreIngestPlugin.class);
 
-	private final Index[] supportedIndices;
+	private final PrimaryIndex[] supportedIndices;
 	private final RetypingVectorDataPlugin retypingPlugin;
 	private final Filter filter;
 
@@ -54,7 +54,7 @@ public class GeoToolsVectorDataStoreIngestPlugin implements
 		// this constructor can be used directly as an extension point for
 		// retyping the original feature data, if the retyping plugin is null,
 		// the data will be ingested as the original type
-		supportedIndices = new Index[] {
+		supportedIndices = new PrimaryIndex[] {
 			IndexType.SPATIAL_VECTOR.createDefaultIndex(),
 			IndexType.SPATIAL_TEMPORAL_VECTOR.createDefaultIndex()
 		};
@@ -149,12 +149,12 @@ public class GeoToolsVectorDataStoreIngestPlugin implements
 	}
 
 	@Override
-	public Index[] getSupportedIndices() {
+	public PrimaryIndex[] getSupportedIndices() {
 		return supportedIndices;
 	}
 
 	@Override
-	public Index[] getRequiredIndices() {
-		return new Index[] {};
+	public PrimaryIndex[] getRequiredIndices() {
+		return new PrimaryIndex[] {};
 	}
 }

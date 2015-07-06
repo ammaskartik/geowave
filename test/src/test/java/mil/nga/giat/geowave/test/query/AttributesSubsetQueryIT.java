@@ -13,7 +13,7 @@ import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.geotime.store.query.SpatialQuery;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.DataStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.test.GeoWaveTestEnvironment;
@@ -40,7 +40,7 @@ public class AttributesSubsetQueryIT extends
 	private static FeatureDataAdapter dataAdapter;
 	private static DataStore dataStore;
 
-	private static final Index INDEX = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+	private static final PrimaryIndex INDEX = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 
 	// constants for attributes of SimpleFeatureType
 	private static final String CITY_ATTRIBUTE = "city";

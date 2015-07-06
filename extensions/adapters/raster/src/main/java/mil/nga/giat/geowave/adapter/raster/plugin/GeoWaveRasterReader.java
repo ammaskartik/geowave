@@ -34,7 +34,7 @@ import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloAdapterStore;
@@ -93,7 +93,7 @@ public class GeoWaveRasterReader extends
 
 	private RasterDataStore geowaveDataStore;
 
-	private Index rasterIndex;
+	private PrimaryIndex rasterIndex;
 
 	protected final static CoordinateOperationFactory OPERATION_FACTORY = new BufferedCoordinateOperationFactory(
 			new Hints(

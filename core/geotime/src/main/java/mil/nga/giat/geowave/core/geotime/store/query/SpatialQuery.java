@@ -6,7 +6,7 @@ import mil.nga.giat.geowave.core.geotime.GeometryUtils;
 import mil.nga.giat.geowave.core.geotime.store.filter.SpatialQueryFilter;
 import mil.nga.giat.geowave.core.geotime.store.filter.SpatialQueryFilter.CompareOperation;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
 import mil.nga.giat.geowave.core.store.query.BasicQuery;
 
@@ -103,7 +103,7 @@ public class SpatialQuery extends
 	@Override
 	protected QueryFilter createQueryFilter(
 			final MultiDimensionalNumericData constraints,
-			final DimensionField<?>[] dimensionFields ) {
+			final NumericDimensionField<?>[] dimensionFields ) {
 		return new SpatialQueryFilter(
 				constraints,
 				dimensionFields,

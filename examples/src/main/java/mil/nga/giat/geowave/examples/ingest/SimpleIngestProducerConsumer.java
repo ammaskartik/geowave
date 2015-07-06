@@ -2,7 +2,7 @@ package mil.nga.giat.geowave.examples.ingest;
 
 import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter;
 import mil.nga.giat.geowave.core.store.DataStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 
 import org.apache.log4j.Logger;
@@ -72,7 +72,7 @@ public class SimpleIngestProducerConsumer extends
 		final FeatureDataAdapter adapter = createDataAdapter(point);
 
 		// This describes how to index the data
-		final Index index = createSpatialIndex();
+		final PrimaryIndex index = createSpatialIndex();
 
 		final Thread ingestThread = new Thread(
 				new Runnable() {

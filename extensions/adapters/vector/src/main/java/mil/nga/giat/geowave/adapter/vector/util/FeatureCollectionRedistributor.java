@@ -35,7 +35,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldVisibilityHandler;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
 import mil.nga.giat.geowave.core.store.index.CustomIdIndex;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloIndexWriter;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloRowId;
@@ -82,7 +82,7 @@ public class FeatureCollectionRedistributor
 			AccumuloException,
 			TableNotFoundException {
 
-		final Index index = config.getIndexType().createDefaultIndex();
+		final PrimaryIndex index = config.getIndexType().createDefaultIndex();
 
 		final BasicAccumuloOperations operations = new BasicAccumuloOperations(
 				config.getZookeeperUrl(),
@@ -266,12 +266,12 @@ public class FeatureCollectionRedistributor
 					e);
 		}
 
-		final Index index;
+		final PrimaryIndex index;
 		if (config.getTier() < 0) {
 			index = config.getIndexType().createDefaultIndex();
 		}
 		else {
-			final Index tempIdx = config.getIndexType().createDefaultIndex();
+			final PrimaryIndex tempIdx = config.getIndexType().createDefaultIndex();
 			final SubStrategy[] subStrats = ((TieredSFCIndexStrategy) tempIdx.getIndexStrategy()).getSubStrategies();
 			index = new CustomIdIndex(
 					subStrats[config.getTier()].getIndexStrategy(),
@@ -497,7 +497,7 @@ public class FeatureCollectionRedistributor
 
 		@Override
 		public IteratorConfig[] getAttachedIteratorConfig(
-				final Index index ) {
+				final PrimaryIndex index ) {
 			return null;
 		}
 	}

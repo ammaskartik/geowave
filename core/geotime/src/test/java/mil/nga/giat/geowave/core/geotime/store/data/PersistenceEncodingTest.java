@@ -34,7 +34,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +69,7 @@ public class PersistenceEncodingTest
 			},
 			SFCType.HILBERT);
 
-	private static final Index index = new Index(
+	private static final PrimaryIndex index = new PrimaryIndex(
 			strategy,
 			model);
 
@@ -149,7 +149,7 @@ public class PersistenceEncodingTest
 				},
 				SFCType.HILBERT);
 
-		final Index index = new Index(
+		final PrimaryIndex index = new PrimaryIndex(
 				strategy,
 				model);
 

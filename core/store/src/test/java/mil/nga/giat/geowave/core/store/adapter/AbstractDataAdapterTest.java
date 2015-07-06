@@ -20,10 +20,10 @@ import mil.nga.giat.geowave.core.store.data.PersistentValue;
 import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.junit.Test;
 
@@ -187,7 +187,7 @@ public class AbstractDataAdapterTest
 
 		@Override
 		public boolean overlaps(
-				final DimensionField[] dimensions,
+				final NumericDimensionField[] dimensions,
 				final NumericData[] rangeData ) {
 			return true;
 		}
@@ -360,7 +360,7 @@ public class AbstractDataAdapterTest
 	//
 	// *************************************************************************
 	protected class TestDimensionField implements
-			DimensionField<TestIndexFieldType>
+			NumericDimensionField<TestIndexFieldType>
 	{
 		final ByteArrayId fieldId;
 
@@ -542,7 +542,7 @@ public class AbstractDataAdapterTest
 						1,
 						testEncoding.getCommonData(),
 						testEncoding.getAdapterExtendedData()),
-				new Index(
+				new PrimaryIndex(
 						null,
 						testIndexModel));
 

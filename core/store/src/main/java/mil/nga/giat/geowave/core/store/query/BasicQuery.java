@@ -2,6 +2,7 @@ package mil.nga.giat.geowave.core.store.query;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,19 +10,25 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import mil.nga.giat.geowave.core.index.ByteArrayId;
+import mil.nga.giat.geowave.core.index.ByteArrayRange;
 import mil.nga.giat.geowave.core.index.NumericIndexStrategy;
+import mil.nga.giat.geowave.core.index.QueryConstraints;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.index.dimension.NumericDimensionDefinition;
 import mil.nga.giat.geowave.core.index.sfc.data.BasicNumericDataset;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
 import mil.nga.giat.geowave.core.index.sfc.data.NumericData;
 import mil.nga.giat.geowave.core.index.sfc.data.NumericRange;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.filter.BasicQueryFilter;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
+import mil.nga.giat.geowave.core.store.index.FilterableConstraints;
 import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
+import mil.nga.giat.geowave.core.store.index.SecondaryIndex;
 
 import org.apache.log4j.Logger;
 
@@ -109,12 +116,12 @@ public class BasicQuery implements
 		}
 
 		public boolean isSupported(
-				final Index index ) {
-			final DimensionField<? extends CommonIndexValue>[] fields = index.getIndexModel().getDimensions();
+				final PrimaryIndex index ) {
+			final NumericDimensionField<? extends CommonIndexValue>[] fields = index.getIndexModel().getDimensions();
 			final Set<Class<? extends NumericDimensionDefinition>> fieldTypeSet = new HashSet<Class<? extends NumericDimensionDefinition>>();
 			// first create a set of the field's base definition types that are
 			// within the index model
-			for (final DimensionField<? extends CommonIndexValue> field : fields) {
+			for (final NumericDimensionField<? extends CommonIndexValue> field : fields) {
 				fieldTypeSet.add(field.getBaseDefinition().getClass());
 			}
 			// then ensure each of the definition types that is required by
@@ -130,7 +137,10 @@ public class BasicQuery implements
 		}
 	}
 
+	// Common index model constraints
 	private Constraints constraints;
+	// field Id to constraint
+	private Map<ByteArrayId, FilterableConstraints> additionalConstraints = Collections.emptyMap();
 
 	protected BasicQuery() {}
 
@@ -142,7 +152,7 @@ public class BasicQuery implements
 	@Override
 	public List<QueryFilter> createFilters(
 			final CommonIndexModel indexModel ) {
-		final DimensionField<?>[] dimensionFields = indexModel.getDimensions();
+		final NumericDimensionField<?>[] dimensionFields = indexModel.getDimensions();
 		final List<QueryFilter> filters = new ArrayList<QueryFilter>();
 		final NumericData[] orderedConstraintsPerDimension = new NumericData[dimensionFields.length];
 		for (int d = 0; d < dimensionFields.length; d++) {
@@ -166,7 +176,7 @@ public class BasicQuery implements
 
 	protected QueryFilter createQueryFilter(
 			final MultiDimensionalNumericData constraints,
-			final DimensionField<?>[] dimensionFields ) {
+			final NumericDimensionField<?>[] dimensionFields ) {
 		return new BasicQueryFilter(
 				constraints,
 				dimensionFields);
@@ -174,8 +184,18 @@ public class BasicQuery implements
 
 	@Override
 	public boolean isSupported(
-			final Index index ) {
-		return constraints.isSupported(index);
+			final Index<?, ?> index ) {
+		return (index instanceof PrimaryIndex) ? constraints.isSupported((PrimaryIndex) index) : secondaryIndexSupports((SecondaryIndex) index);
+	}
+
+	public boolean secondaryIndexSupports(
+			SecondaryIndex index ) {
+		for (final ByteArrayId id : index.getFieldIDs()) {
+			if (additionalConstraints.containsKey(id)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -204,6 +224,8 @@ public class BasicQuery implements
 			bytes.add(entryBuf.array());
 			totalBytes += entryLength;
 		}
+
+		// TODO; additionalConstraints
 
 		final ByteBuffer buf = ByteBuffer.allocate(totalBytes);
 		buf.putInt(bytes.size());
@@ -246,5 +268,41 @@ public class BasicQuery implements
 		}
 		constraints = new Constraints(
 				constraintsPerTypeOfDimensionDefinition);
+		// TODO; additionalConstraints
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<ByteArrayRange> getSecondaryIndexConstraints(
+			SecondaryIndex index ) {
+		final List<ByteArrayRange> allRanges = new ArrayList<>();
+		final List<FilterableConstraints> queryConstraints = getSecondaryIndexQueryConstraints(index);
+		for (QueryConstraints queryConstraint : queryConstraints) {
+			allRanges.addAll(index.getIndexStrategy().getQueryRanges(
+					queryConstraint));
+		}
+		return allRanges;
+	}
+
+	@Override
+	public List<QueryFilter> getSecondaryQueryFilter(
+			SecondaryIndex index ) {
+		final List<QueryFilter> allFilters = new ArrayList<>();
+		final List<FilterableConstraints> queryConstraints = getSecondaryIndexQueryConstraints(index);
+		for (FilterableConstraints queryConstraint : queryConstraints) {
+			allFilters.add(queryConstraint.getFilter());
+		}
+		return allFilters;
+	}
+
+	public List<FilterableConstraints> getSecondaryIndexQueryConstraints(
+			SecondaryIndex index ) {
+		final List<FilterableConstraints> constraints = new ArrayList<>();
+		for (ByteArrayId id : index.getFieldIDs()) {
+			if (additionalConstraints.get(id) != null) {
+				constraints.add(additionalConstraints.get(id));
+			}
+		}
+		return constraints;
 	}
 }

@@ -5,7 +5,7 @@ import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.store.DataStore;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 
@@ -25,7 +25,7 @@ public class AccumuloRowIdQueryTest
 	private ByteArrayId rowId1;
 	private ByteArrayId rowId2;
 	private DataStore mockDataStore;
-	private Index index;
+	private PrimaryIndex index;
 	private WritableDataAdapter<AccumuloRangeQueryTest.TestGeometry> adapter;
 
 	@Before

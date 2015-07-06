@@ -25,7 +25,7 @@ import mil.nga.giat.geowave.core.index.sfc.data.BasicNumericDataset;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
 import mil.nga.giat.geowave.core.index.sfc.data.NumericData;
 import mil.nga.giat.geowave.core.index.sfc.data.NumericRange;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 
 import org.apache.commons.cli.Option;
@@ -110,7 +110,7 @@ public class OrthodromicDistancePartitioner<T> extends
 	private MultiDimensionalNumericData getNumericData(
 			final Geometry geometry,
 			final double[] otherDimensionData ) {
-		final DimensionField<?>[] dimensionFields = getIndex().getIndexModel().getDimensions();
+		final NumericDimensionField<?>[] dimensionFields = getIndex().getIndexModel().getDimensions();
 		final NumericData[] numericData = new NumericData[dimensionFields.length];
 		final double[] distancePerDimension = getDistancePerDimension();
 		int otherIndex = 0;
@@ -144,7 +144,7 @@ public class OrthodromicDistancePartitioner<T> extends
 	}
 
 	private static int indexOf(
-			final DimensionField<?> fields[],
+			final NumericDimensionField<?> fields[],
 			final Class<? extends NumericDimensionDefinition> clazz ) {
 
 		for (int i = 0; i < fields.length; i++) {

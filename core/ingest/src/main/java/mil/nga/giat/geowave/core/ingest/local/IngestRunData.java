@@ -13,7 +13,7 @@ import mil.nga.giat.geowave.core.store.IndexWriter;
 import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
 import mil.nga.giat.geowave.core.store.adapter.MemoryAdapterStore;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 /**
  * A class to hold intermediate run data that must be used throughout the life
@@ -40,7 +40,7 @@ public class IngestRunData implements
 	}
 
 	public synchronized IndexWriter getIndexWriter(
-			final Index index ) {
+			final PrimaryIndex index ) {
 		IndexWriter indexWriter = indexIdToWriterCache.get(index.getId());
 		if (indexWriter == null) {
 			indexWriter = dataStore.createIndexWriter(index);

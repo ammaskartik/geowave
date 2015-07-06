@@ -26,7 +26,7 @@ import mil.nga.giat.geowave.analytic.param.CommonParameters;
 import mil.nga.giat.geowave.analytic.param.GlobalParameters;
 import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.GeoWaveConfiguratorBase;
@@ -70,7 +70,7 @@ public class KMeansDistortionMapReduceTest
 
 	private static final List<Object> capturedObjects = new ArrayList<Object>();
 
-	final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+	final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 
 	final GeometryFactory factory = new GeometryFactory();
 	final String grp1 = "g1";

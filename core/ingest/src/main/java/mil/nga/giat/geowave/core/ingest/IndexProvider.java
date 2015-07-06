@@ -1,6 +1,6 @@
 package mil.nga.giat.geowave.core.ingest;
 
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 public interface IndexProvider
 {
@@ -13,7 +13,7 @@ public interface IndexProvider
 	 * @return the array of indices that are supported by this ingest
 	 *         implementation
 	 */
-	public Index[] getSupportedIndices();
+	public PrimaryIndex[] getSupportedIndices();
 
 	/**
 	 * Get an array of indices that are required by this ingest implementation.
@@ -27,5 +27,5 @@ public interface IndexProvider
 	 * @return the array of indices that are supported by this ingest
 	 *         implementation
 	 */
-	public Index[] getRequiredIndices();
+	public PrimaryIndex[] getRequiredIndices();
 }

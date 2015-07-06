@@ -20,7 +20,7 @@ import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.statistics.CountDataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsStore;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStoreStatsTest.TestGeometryAdapter;
@@ -65,7 +65,7 @@ public class DeleteWriterTest
 	final SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss.S");
 
-	private static final Index index = new Index(
+	private static final PrimaryIndex index = new PrimaryIndex(
 			strategy,
 			model);
 

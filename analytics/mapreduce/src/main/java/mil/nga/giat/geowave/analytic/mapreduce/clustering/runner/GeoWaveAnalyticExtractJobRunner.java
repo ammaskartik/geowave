@@ -22,7 +22,7 @@ import mil.nga.giat.geowave.analytic.param.ParameterEnum;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.DistributableQuery;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.GeoWaveConfiguratorBase;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.dedupe.GeoWaveDedupeJobRunner;
@@ -211,7 +211,7 @@ public class GeoWaveAnalyticExtractJobRunner extends
 		final String indexId = runTimeProperties.getPropertyAsString(ExtractParameters.Extract.INDEX_ID);
 		final String adapterId = runTimeProperties.getPropertyAsString(ExtractParameters.Extract.ADAPTER_ID);
 
-		final Index[] indices = ClusteringUtils.getIndices(runTimeProperties);
+		final PrimaryIndex[] indices = ClusteringUtils.getIndices(runTimeProperties);
 
 		@SuppressWarnings("rawtypes")
 		final DataAdapter[] adapters = ClusteringUtils.getAdapters(runTimeProperties);
@@ -230,7 +230,7 @@ public class GeoWaveAnalyticExtractJobRunner extends
 		if (indexId != null) {
 			final ByteArrayId byteId = new ByteArrayId(
 					StringUtils.stringToBinary(indexId));
-			for (final Index index : indices) {
+			for (final PrimaryIndex index : indices) {
 				if (byteId.equals(index.getId())) {
 					addIndex(index);
 				}

@@ -14,7 +14,7 @@ import mil.nga.giat.geowave.core.store.adapter.IndexDependentDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsStore;
 import mil.nga.giat.geowave.core.store.adapter.statistics.StatsCompositionTool;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloDataStatisticsStore;
 import mil.nga.giat.geowave.datastore.accumulo.util.AccumuloUtils;
 import mil.nga.giat.geowave.datastore.accumulo.util.DataAdapterAndIndexCache;
@@ -34,7 +34,7 @@ public class AccumuloIndexWriter implements
 		IndexWriter
 {
 	private final static Logger LOGGER = Logger.getLogger(AccumuloIndexWriter.class);
-	protected final Index index;
+	protected final PrimaryIndex index;
 	protected final AccumuloOperations accumuloOperations;
 	protected final AccumuloOptions accumuloOptions;
 	protected final AccumuloDataStore dataStore;
@@ -53,7 +53,7 @@ public class AccumuloIndexWriter implements
 	protected final Map<ByteArrayId, StatsCompositionTool<?>> statsMap = new HashMap<ByteArrayId, StatsCompositionTool<?>>();
 
 	public AccumuloIndexWriter(
-			final Index index,
+			final PrimaryIndex index,
 			final AccumuloOperations accumuloOperations,
 			final AccumuloDataStore dataStore ) {
 		this(
@@ -64,7 +64,7 @@ public class AccumuloIndexWriter implements
 	}
 
 	public AccumuloIndexWriter(
-			final Index index,
+			final PrimaryIndex index,
 			final AccumuloOperations accumuloOperations,
 			final AccumuloOptions accumuloOptions,
 			final AccumuloDataStore dataStore ) {
@@ -147,7 +147,7 @@ public class AccumuloIndexWriter implements
 	}
 
 	@Override
-	public Index getIndex() {
+	public PrimaryIndex getIndex() {
 		return index;
 	}
 

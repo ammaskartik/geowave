@@ -13,7 +13,7 @@ import mil.nga.giat.geowave.core.store.filter.DedupeFilter;
 import mil.nga.giat.geowave.core.store.filter.DistributableFilterList;
 import mil.nga.giat.geowave.core.store.filter.DistributableQueryFilter;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.Query;
 import mil.nga.giat.geowave.datastore.accumulo.util.AccumuloUtils;
 
@@ -34,7 +34,7 @@ public class AccumuloConstraintsQuery extends
 	protected boolean queryFiltersEnabled;
 
 	public AccumuloConstraintsQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final Query query ) {
 		this(
 				null,
@@ -49,7 +49,7 @@ public class AccumuloConstraintsQuery extends
 	}
 
 	public AccumuloConstraintsQuery(
-			final Index index ) {
+			final PrimaryIndex index ) {
 		this(
 				null,
 				index);
@@ -57,7 +57,7 @@ public class AccumuloConstraintsQuery extends
 
 	public AccumuloConstraintsQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index ) {
+			final PrimaryIndex index ) {
 		this(
 				adapterIds,
 				index,
@@ -67,7 +67,7 @@ public class AccumuloConstraintsQuery extends
 
 	public AccumuloConstraintsQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final DedupeFilter clientDedupeFilter,
 			final ScanCallback<?> scanCallback,
 			final String... authorizations ) {
@@ -82,7 +82,7 @@ public class AccumuloConstraintsQuery extends
 	}
 
 	public AccumuloConstraintsQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters ) {
 		this(
@@ -95,7 +95,7 @@ public class AccumuloConstraintsQuery extends
 
 	public AccumuloConstraintsQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters ) {
 		this(
@@ -111,7 +111,7 @@ public class AccumuloConstraintsQuery extends
 
 	public AccumuloConstraintsQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final String[] authorizations ) {
@@ -128,7 +128,7 @@ public class AccumuloConstraintsQuery extends
 
 	public AccumuloConstraintsQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final DedupeFilter clientDedupeFilter,

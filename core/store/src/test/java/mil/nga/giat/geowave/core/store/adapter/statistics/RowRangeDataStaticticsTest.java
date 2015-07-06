@@ -47,7 +47,7 @@ public class RowRangeDataStaticticsTest
 										"5064"),
 								new ByteArrayId(
 										"50632")),
-						Collections.<FieldInfo> emptyList()),
+						Collections.<FieldInfo<?>> emptyList()),
 				1);
 
 		assertTrue(Arrays.equals(
@@ -77,7 +77,7 @@ public class RowRangeDataStaticticsTest
 										"014"),
 								new ByteArrayId(
 										"8062")),
-						Collections.<FieldInfo> emptyList()),
+						Collections.<FieldInfo<?>> emptyList()),
 				1);
 
 		stats.merge(stats2);

@@ -6,7 +6,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.query.AccumuloRowIdsQuery;
 import mil.nga.giat.geowave.datastore.accumulo.util.TransformerWriter;
@@ -30,7 +30,7 @@ public class TransformingVisibilityQuery extends
 
 	public TransformingVisibilityQuery(
 			final VisibilityTransformer transformer,
-			final Index index,
+			final PrimaryIndex index,
 			final Collection<ByteArrayId> rows,
 			final String[] authorizations ) {
 		super(

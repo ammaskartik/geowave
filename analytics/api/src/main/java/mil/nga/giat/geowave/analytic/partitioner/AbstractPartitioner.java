@@ -22,9 +22,9 @@ import mil.nga.giat.geowave.core.index.sfc.SFCFactory.SFCType;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
 import mil.nga.giat.geowave.core.index.sfc.tiered.TieredSFCIndexFactory;
 import mil.nga.giat.geowave.core.index.sfc.tiered.TieredSFCIndexStrategy;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.apache.commons.cli.Option;
 import org.apache.hadoop.conf.Configuration;
@@ -38,7 +38,7 @@ public abstract class AbstractPartitioner<T> implements
 		Partitioner<T>
 {
 
-	private transient Index index = null;
+	private transient PrimaryIndex index = null;
 	private transient double[] distancePerDimension = null;
 	private transient double precisionFactor = 1.0;
 
@@ -67,7 +67,7 @@ public abstract class AbstractPartitioner<T> implements
 		return distancePerDimension;
 	}
 
-	protected Index getIndex() {
+	protected PrimaryIndex getIndex() {
 		return index;
 	}
 
@@ -257,7 +257,7 @@ public abstract class AbstractPartitioner<T> implements
 			final double[] distancePerDimensionForIndex ) {
 
 		// truncating to lower precision
-		final DimensionField<?>[] dimensions = indexModel.getDimensions();
+		final NumericDimensionField<?>[] dimensions = indexModel.getDimensions();
 
 		int totalRequestedPrecision = 0;
 		final int[] dimensionPrecision = new int[indexModel.getDimensions().length];
@@ -287,7 +287,7 @@ public abstract class AbstractPartitioner<T> implements
 				dimensions.length,
 				4));
 
-		index = new Index(
+		index = new PrimaryIndex(
 				indexStrategy,
 				indexModel);
 

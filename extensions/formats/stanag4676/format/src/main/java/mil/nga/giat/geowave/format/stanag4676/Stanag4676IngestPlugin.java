@@ -28,7 +28,7 @@ import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.data.field.FieldVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.visibility.GlobalVisibilityHandler;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.index.NullIndex;
 import mil.nga.giat.geowave.format.stanag4676.image.ImageChip;
 import mil.nga.giat.geowave.format.stanag4676.image.ImageChipDataAdapter;
@@ -55,8 +55,8 @@ public class Stanag4676IngestPlugin extends
 		LocalFileIngestPlugin<Object>
 {
 	private static Logger LOGGER = LoggerFactory.getLogger(Stanag4676IngestPlugin.class);
-	private final Index[] supportedIndices;
-	public final static Index IMAGE_CHIP_INDEX = new NullIndex(
+	private final PrimaryIndex[] supportedIndices;
+	public final static PrimaryIndex IMAGE_CHIP_INDEX = new NullIndex(
 			"IMAGERY_CHIPS");
 
 	@Override
@@ -69,7 +69,7 @@ public class Stanag4676IngestPlugin extends
 
 	public Stanag4676IngestPlugin() {
 		super();
-		supportedIndices = new Index[] {
+		supportedIndices = new PrimaryIndex[] {
 			IndexType.SPATIAL_VECTOR.createDefaultIndex(),
 			IndexType.SPATIAL_TEMPORAL_VECTOR.createDefaultIndex(),
 			IMAGE_CHIP_INDEX
@@ -98,7 +98,7 @@ public class Stanag4676IngestPlugin extends
 	}
 
 	@Override
-	public Index[] getSupportedIndices() {
+	public PrimaryIndex[] getSupportedIndices() {
 		return supportedIndices;
 	}
 
@@ -489,8 +489,8 @@ public class Stanag4676IngestPlugin extends
 	}
 
 	@Override
-	public Index[] getRequiredIndices() {
-		return new Index[] {
+	public PrimaryIndex[] getRequiredIndices() {
+		return new PrimaryIndex[] {
 			IMAGE_CHIP_INDEX
 		};
 	}

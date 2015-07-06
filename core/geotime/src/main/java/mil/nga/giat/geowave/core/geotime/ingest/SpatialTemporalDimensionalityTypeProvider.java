@@ -3,7 +3,7 @@ package mil.nga.giat.geowave.core.geotime.ingest;
 import mil.nga.giat.geowave.core.geotime.DimensionalityType;
 import mil.nga.giat.geowave.core.ingest.IndexCompatibilityVisitor;
 import mil.nga.giat.geowave.core.ingest.IngestDimensionalityTypeProviderSpi;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 public class SpatialTemporalDimensionalityTypeProvider implements
 		IngestDimensionalityTypeProviderSpi
@@ -36,7 +36,7 @@ public class SpatialTemporalDimensionalityTypeProvider implements
 
 		@Override
 		public boolean isCompatible(
-				final Index index ) {
+				final PrimaryIndex index ) {
 			return DimensionalityType.SPATIAL_TEMPORAL.isCompatible(index);
 		}
 

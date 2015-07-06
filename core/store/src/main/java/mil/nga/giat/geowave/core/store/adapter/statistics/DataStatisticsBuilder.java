@@ -7,6 +7,7 @@ import java.util.Map;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.store.DataStoreEntryInfo;
 import mil.nga.giat.geowave.core.store.DeleteCallback;
+import mil.nga.giat.geowave.core.store.EntryVisibilityHandler;
 import mil.nga.giat.geowave.core.store.IngestCallback;
 import mil.nga.giat.geowave.core.store.ScanCallback;
 
@@ -20,7 +21,8 @@ public class DataStatisticsBuilder<T> implements
 	private final StatisticalDataAdapter<T> adapter;
 	private final Map<ByteArrayId, DataStatistics<T>> statisticsMap = new HashMap<ByteArrayId, DataStatistics<T>>();
 	private final ByteArrayId statisticsId;
-	private final DataStatisticsVisibilityHandler<T> visibilityHandler;
+	private final EntryVisibilityHandler<T> visibilityHandler;
+	private static final Logger LOGGER = Logger.getLogger(DataStatistics.class);
 
 	public DataStatisticsBuilder(
 			final StatisticalDataAdapter<T> adapter,

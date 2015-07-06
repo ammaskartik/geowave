@@ -36,7 +36,7 @@ public class RowHistogramFixedDataStaticticsTest
 			stats.entryIngested(
 					new DataStoreEntryInfo(
 							Arrays.asList(genId(i)),
-							Collections.<FieldInfo> emptyList()),
+							Collections.<FieldInfo<?>> emptyList()),
 					1);
 		}
 
@@ -71,7 +71,7 @@ public class RowHistogramFixedDataStaticticsTest
 			stats2.entryIngested(
 					new DataStoreEntryInfo(
 							Arrays.asList(genId(j)),
-							Collections.<FieldInfo> emptyList()),
+							Collections.<FieldInfo<?>> emptyList()),
 					1);
 		}
 

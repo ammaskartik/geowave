@@ -22,7 +22,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.Persistable;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.DataStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.util.ConnectorPool;
 
@@ -538,7 +538,7 @@ public class GeoWaveRasterIT extends
 				basicAdapter,
 				coverageName,
 				mergeStrategy);
-		final Index index = IndexType.SPATIAL_RASTER.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_RASTER.createDefaultIndex();
 		for (int r = 0; r < numRasters; r++) {
 			final WritableRaster raster = RasterUtils.createRasterTypeDouble(
 					numBands,

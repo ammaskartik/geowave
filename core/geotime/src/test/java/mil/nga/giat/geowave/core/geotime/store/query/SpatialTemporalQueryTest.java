@@ -14,7 +14,7 @@ import mil.nga.giat.geowave.core.geotime.store.dimension.Time.TimeRange;
 import mil.nga.giat.geowave.core.geotime.store.dimension.TimeField;
 import mil.nga.giat.geowave.core.geotime.store.filter.SpatialQueryFilter.CompareOperation;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
-import mil.nga.giat.geowave.core.store.data.IndexedPersistenceEncoding;
+import mil.nga.giat.geowave.core.store.data.CommonIndexedPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.data.PersistentDataset;
 import mil.nga.giat.geowave.core.store.data.PersistentValue;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
@@ -61,11 +61,11 @@ public class SpatialTemporalQueryTest
 				query.getQueryGeometry());
 	}
 
-	private IndexedPersistenceEncoding createData(
-			Date start,
-			Date end,
-			Coordinate[] coordinates ) {
-		GeometryFactory factory = new GeometryFactory();
+	private CommonIndexedPersistenceEncoding createData(
+			final Date start,
+			final Date end,
+			final Coordinate[] coordinates ) {
+		final GeometryFactory factory = new GeometryFactory();
 		final PersistentDataset<CommonIndexValue> commonData = new PersistentDataset<CommonIndexValue>();
 
 		commonData.addOrUpdateValue(new PersistentValue<CommonIndexValue>(
@@ -80,7 +80,7 @@ public class SpatialTemporalQueryTest
 						end.getTime(),
 						new byte[0])));
 
-		return new IndexedPersistenceEncoding(
+		return new CommonIndexedPersistenceEncoding(
 				new ByteArrayId(
 						"1"),
 				new ByteArrayId(
@@ -92,8 +92,8 @@ public class SpatialTemporalQueryTest
 	}
 
 	public void performOp(
-			CompareOperation op,
-			boolean[] expectedResults )
+			final CompareOperation op,
+			final boolean[] expectedResults )
 			throws ParseException {
 		final GeometryFactory factory = new GeometryFactory();
 		final SpatialTemporalQuery query = new SpatialTemporalQuery(
@@ -120,7 +120,7 @@ public class SpatialTemporalQueryTest
 		final SpatialQuery queryCopy = new SpatialQuery();
 		queryCopy.fromBinary(query.toBinary());
 
-		IndexedPersistenceEncoding[] data = new IndexedPersistenceEncoding[] {
+		final CommonIndexedPersistenceEncoding[] data = new CommonIndexedPersistenceEncoding[] {
 			createData(
 					df.parse("2005-05-17T19:32:56GMT-00:00"),
 					df.parse("2005-05-17T22:32:56GMT-00:00"),
@@ -179,13 +179,14 @@ public class SpatialTemporalQueryTest
 		};
 
 		int pos = 0;
-		for (IndexedPersistenceEncoding dataItem : data)
-			for (QueryFilter filter : queryCopy.createFilters(IndexType.SPATIAL_TEMPORAL_VECTOR.getDefaultIndexModel())) {
+		for (final CommonIndexedPersistenceEncoding dataItem : data) {
+			for (final QueryFilter filter : queryCopy.createFilters(IndexType.SPATIAL_TEMPORAL_VECTOR.getDefaultIndexModel())) {
 				assertEquals(
 						"result: " + (pos + 1),
 						expectedResults[pos++],
 						filter.accept(dataItem));
 			}
+		}
 	}
 
 	@Test

@@ -12,7 +12,7 @@ import mil.nga.giat.geowave.analytic.param.GlobalParameters;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.DistributableQuery;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputFormat;
@@ -26,7 +26,7 @@ public class GeoWaveInputFormatConfiguration implements
 
 	protected boolean isDataWritable = false;
 	protected List<DataAdapter<?>> adapters = new ArrayList<DataAdapter<?>>();
-	protected List<Index> indices = new ArrayList<Index>();
+	protected List<PrimaryIndex> indices = new ArrayList<PrimaryIndex>();
 
 	public GeoWaveInputFormatConfiguration() {
 
@@ -59,10 +59,10 @@ public class GeoWaveInputFormatConfiguration implements
 		final String adapterId = runTimeProperties.getPropertyAsString(ExtractParameters.Extract.ADAPTER_ID);
 
 		if (indexId != null) {
-			final Index[] indices = ClusteringUtils.getIndices(runTimeProperties);
+			final PrimaryIndex[] indices = ClusteringUtils.getIndices(runTimeProperties);
 			final ByteArrayId byteId = new ByteArrayId(
 					StringUtils.stringToBinary(indexId));
-			for (final Index index : indices) {
+			for (final PrimaryIndex index : indices) {
 				if (byteId.equals(index.getId())) {
 					GeoWaveInputFormat.addIndex(
 							configuration,
@@ -70,7 +70,7 @@ public class GeoWaveInputFormatConfiguration implements
 				}
 			}
 		}
-		for (Index index : indices) {
+		for (PrimaryIndex index : indices) {
 			GeoWaveInputFormat.addIndex(
 					configuration,
 					index);
@@ -138,7 +138,7 @@ public class GeoWaveInputFormatConfiguration implements
 	}
 
 	public void addIndex(
-			final Index index ) {
+			final PrimaryIndex index ) {
 		indices.add(index);
 	}
 

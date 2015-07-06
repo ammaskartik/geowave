@@ -34,7 +34,7 @@ import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
@@ -130,7 +130,7 @@ public class CentroidManagerGeoWave<T> implements
 	private final AccumuloDataStore dataStore;
 	private final AccumuloIndexStore indexStore;
 	private final AccumuloAdapterStore adapterStore;
-	private final Index index;
+	private final PrimaryIndex index;
 
 	public CentroidManagerGeoWave(
 			final BasicAccumuloOperations basicAccumuloOperations,
@@ -150,7 +150,7 @@ public class CentroidManagerGeoWave<T> implements
 				basicAccumuloOperations);
 		indexStore = new AccumuloIndexStore(
 				basicAccumuloOperations);
-		index = indexStore.getIndex(new ByteArrayId(
+		index = (PrimaryIndex) indexStore.getIndex(new ByteArrayId(
 				StringUtils.stringToBinary(indexId)));
 		adapterStore = new AccumuloAdapterStore(
 				basicAccumuloOperations);
@@ -185,7 +185,7 @@ public class CentroidManagerGeoWave<T> implements
 				basicAccumuloOperations);
 		indexStore = new AccumuloIndexStore(
 				basicAccumuloOperations);
-		index = indexStore.getIndex(new ByteArrayId(
+		index = (PrimaryIndex) indexStore.getIndex(new ByteArrayId(
 				StringUtils.stringToBinary(indexId)));
 		adapterStore = new AccumuloAdapterStore(
 				basicAccumuloOperations);
@@ -280,7 +280,7 @@ public class CentroidManagerGeoWave<T> implements
 				basicAccumuloOperations);
 		indexStore = new AccumuloIndexStore(
 				basicAccumuloOperations);
-		index = indexStore.getIndex(new ByteArrayId(
+		index = (PrimaryIndex) indexStore.getIndex(new ByteArrayId(
 				StringUtils.stringToBinary(indexId)));
 		adapterStore = new AccumuloAdapterStore(
 				basicAccumuloOperations);
@@ -336,7 +336,7 @@ public class CentroidManagerGeoWave<T> implements
 				basicAccumuloOperations);
 		indexStore = new AccumuloIndexStore(
 				basicAccumuloOperations);
-		index = indexStore.getIndex(new ByteArrayId(
+		index = (PrimaryIndex) indexStore.getIndex(new ByteArrayId(
 				StringUtils.stringToBinary(indexId)));
 		adapterStore = new AccumuloAdapterStore(
 				basicAccumuloOperations);

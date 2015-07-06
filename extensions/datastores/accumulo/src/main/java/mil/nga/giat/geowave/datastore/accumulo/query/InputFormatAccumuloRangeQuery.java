@@ -8,7 +8,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
 import mil.nga.giat.geowave.core.store.filter.FilterList;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.util.InputFormatIteratorWrapper;
@@ -36,7 +36,7 @@ public class InputFormatAccumuloRangeQuery extends
 
 	public InputFormatAccumuloRangeQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final Range accumuloRange,
 			final List<QueryFilter> queryFilters,
 			final boolean isOutputWritable,

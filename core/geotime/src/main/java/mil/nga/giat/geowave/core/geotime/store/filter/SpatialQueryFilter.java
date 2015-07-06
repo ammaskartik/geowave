@@ -14,7 +14,7 @@ import mil.nga.giat.geowave.core.index.sfc.data.BasicNumericDataset;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
 import mil.nga.giat.geowave.core.index.sfc.data.NumericData;
 import mil.nga.giat.geowave.core.store.data.IndexedPersistenceEncoding;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.filter.BasicQueryFilter;
 import mil.nga.giat.geowave.core.store.filter.GenericTypeResolver;
 
@@ -88,7 +88,7 @@ public class SpatialQueryFilter extends
 
 	public SpatialQueryFilter(
 			final MultiDimensionalNumericData query,
-			final DimensionField<?>[] dimensionDefinitions,
+			final NumericDimensionField<?>[] dimensionDefinitions,
 			final Geometry queryGeometry,
 			final CompareOperation compareOp ) {
 		this(
@@ -116,12 +116,12 @@ public class SpatialQueryFilter extends
 	private static class StrippedGeometry
 	{
 		private final MultiDimensionalNumericData strippedQuery;
-		private final DimensionField<?>[] strippedDimensionDefinitions;
+		private final NumericDimensionField<?>[] strippedDimensionDefinitions;
 		private final Set<ByteArrayId> geometryFieldIds;
 
 		public StrippedGeometry(
 				final MultiDimensionalNumericData strippedQuery,
-				final DimensionField<?>[] strippedDimensionDefinitions,
+				final NumericDimensionField<?>[] strippedDimensionDefinitions,
 				final Set<ByteArrayId> geometryFieldIds ) {
 			this.strippedQuery = strippedQuery;
 			this.strippedDimensionDefinitions = strippedDimensionDefinitions;
@@ -131,10 +131,10 @@ public class SpatialQueryFilter extends
 
 	private static StrippedGeometry stripGeometry(
 			final MultiDimensionalNumericData query,
-			final DimensionField<?>[] dimensionDefinitions ) {
+			final NumericDimensionField<?>[] dimensionDefinitions ) {
 		final Set<ByteArrayId> geometryFieldIds = new HashSet<ByteArrayId>();
 		final List<NumericData> numericDataPerDimension = new ArrayList<NumericData>();
-		final List<DimensionField<?>> fields = new ArrayList<DimensionField<?>>();
+		final List<NumericDimensionField<?>> fields = new ArrayList<NumericDimensionField<?>>();
 		final NumericData[] data = query.getDataPerDimension();
 		for (int d = 0; d < dimensionDefinitions.length; d++) {
 			// if the type on the generic is assignable to geometry then save
@@ -150,21 +150,21 @@ public class SpatialQueryFilter extends
 		return new StrippedGeometry(
 				new BasicNumericDataset(
 						numericDataPerDimension.toArray(new NumericData[numericDataPerDimension.size()])),
-				fields.toArray(new DimensionField<?>[fields.size()]),
+				fields.toArray(new NumericDimensionField<?>[fields.size()]),
 				geometryFieldIds);
 	}
 
 	public static boolean isSpatial(
-			final DimensionField<?> d ) {
+			final NumericDimensionField<?> d ) {
 		final Class<?> commonIndexType = GenericTypeResolver.resolveTypeArgument(
 				d.getClass(),
-				DimensionField.class);
+				NumericDimensionField.class);
 		return GeometryWrapper.class.isAssignableFrom(commonIndexType);
 	}
 
 	@Override
 	public boolean accept(
-			final IndexedPersistenceEncoding persistenceEncoding ) {
+			final IndexedPersistenceEncoding<?> persistenceEncoding ) {
 		if (preparedGeometryImage == null) {
 			return true;
 		}

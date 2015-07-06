@@ -7,7 +7,7 @@ import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter;
 import mil.nga.giat.geowave.core.geotime.GeometryUtils;
 import mil.nga.giat.geowave.core.store.DataStore;
 import mil.nga.giat.geowave.core.store.IndexWriter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 
 import org.apache.log4j.Logger;
@@ -73,7 +73,7 @@ public class SimpleIngestIndexWriter extends
 		final FeatureDataAdapter adapter = createDataAdapter(point);
 
 		// This describes how to index the data
-		final Index index = createSpatialIndex();
+		final PrimaryIndex index = createSpatialIndex();
 
 		// features require a featureID - this should be unqiue as it's a
 		// foreign key on the feature

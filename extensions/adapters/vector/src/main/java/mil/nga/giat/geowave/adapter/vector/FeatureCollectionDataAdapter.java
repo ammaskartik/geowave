@@ -43,11 +43,11 @@ import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
 import mil.nga.giat.geowave.core.store.data.field.FieldVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.index.BasicIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.IteratorConfig;
 import mil.nga.giat.geowave.datastore.accumulo.ModelConvertingDataAdapter;
 import mil.nga.giat.geowave.datastore.accumulo.query.ArrayToElementsIterator;
@@ -309,7 +309,7 @@ public class FeatureCollectionDataAdapter extends
 
 	@Override
 	protected IndexFieldHandler<DefaultFeatureCollection, ? extends CommonIndexValue, Object> getFieldHandler(
-			final DimensionField<? extends CommonIndexValue> dimension ) {
+			final NumericDimensionField<? extends CommonIndexValue> dimension ) {
 		IndexFieldHandler<DefaultFeatureCollection, ? extends CommonIndexValue, Object> fieldHandler = super.getFieldHandler(dimension);
 		if (fieldHandler == null) {
 			// if that fails, go for array type matching
@@ -513,9 +513,9 @@ public class FeatureCollectionDataAdapter extends
 	@Override
 	public DefaultFeatureCollection decode(
 			final IndexedAdapterPersistenceEncoding data,
-			final Index index ) {
+			final PrimaryIndex index ) {
 
-		final Index convertedIndex = new Index(
+		final PrimaryIndex convertedIndex = new PrimaryIndex(
 				index.getIndexStrategy(),
 				convertModel(index.getIndexModel()));
 
@@ -548,7 +548,7 @@ public class FeatureCollectionDataAdapter extends
 
 	@Override
 	public Iterator<DefaultFeatureCollection> convertToIndex(
-			final Index index,
+			final PrimaryIndex index,
 			final DefaultFeatureCollection originalEntry ) {
 
 		final DefaultFeatureCollection defaultCRSEntry;
@@ -756,7 +756,7 @@ public class FeatureCollectionDataAdapter extends
 
 	@Override
 	public IteratorConfig[] getAttachedIteratorConfig(
-			final Index index ) {
+			final PrimaryIndex index ) {
 
 		final IteratorSetting combinerSetting = new IteratorSetting(
 				FEATURE_COLLECTION_COMBINER_PRIORITY,
@@ -818,10 +818,10 @@ public class FeatureCollectionDataAdapter extends
 	public CommonIndexModel convertModel(
 			final CommonIndexModel indexModel ) {
 
-		final DimensionField<?>[] dimensions = new DimensionField<?>[indexModel.getDimensions().length];
+		final NumericDimensionField<?>[] dimensions = new NumericDimensionField<?>[indexModel.getDimensions().length];
 
 		for (int i = 0; i < indexModel.getDimensions().length; i++) {
-			final DimensionField<?> dimension = indexModel.getDimensions()[i];
+			final NumericDimensionField<?> dimension = indexModel.getDimensions()[i];
 			if (dimension instanceof TimeField) {
 				dimensions[i] = new TimeArrayField(
 						(TimeField) dimension);

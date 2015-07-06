@@ -1,7 +1,7 @@
 package mil.nga.giat.geowave.datastore.accumulo;
 
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 public interface AttachedIteratorDataAdapter<T> extends
 		WritableDataAdapter<T>
@@ -9,5 +9,5 @@ public interface AttachedIteratorDataAdapter<T> extends
 	public static final String ATTACHED_ITERATOR_CACHE_ID = "AttachedIterators";
 
 	public IteratorConfig[] getAttachedIteratorConfig(
-			final Index index );
+			final PrimaryIndex index );
 }

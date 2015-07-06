@@ -16,7 +16,7 @@ import mil.nga.giat.geowave.core.ingest.local.LocalFileIngestPlugin;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.CloseableIterator.Wrapper;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -36,7 +36,7 @@ public class GeoToolsRasterDataStoreIngestPlugin implements
 		LocalFileIngestPlugin<GridCoverage>
 {
 	private final static Logger LOGGER = Logger.getLogger(GeoToolsRasterDataStoreIngestPlugin.class);
-	private final Index[] supportedIndices;
+	private final PrimaryIndex[] supportedIndices;
 	private final RasterOptionProvider optionProvider;
 
 	public GeoToolsRasterDataStoreIngestPlugin() {
@@ -46,7 +46,7 @@ public class GeoToolsRasterDataStoreIngestPlugin implements
 
 	public GeoToolsRasterDataStoreIngestPlugin(
 			final RasterOptionProvider optionProvider ) {
-		supportedIndices = new Index[] {
+		supportedIndices = new PrimaryIndex[] {
 			IndexType.SPATIAL_RASTER.createDefaultIndex(),
 			IndexType.SPATIAL_TEMPORAL_RASTER.createDefaultIndex()
 		};
@@ -142,13 +142,13 @@ public class GeoToolsRasterDataStoreIngestPlugin implements
 	}
 
 	@Override
-	public Index[] getSupportedIndices() {
+	public PrimaryIndex[] getSupportedIndices() {
 		return supportedIndices;
 	}
 
 	@Override
-	public Index[] getRequiredIndices() {
-		return new Index[] {};
+	public PrimaryIndex[] getRequiredIndices() {
+		return new PrimaryIndex[] {};
 	}
 
 }

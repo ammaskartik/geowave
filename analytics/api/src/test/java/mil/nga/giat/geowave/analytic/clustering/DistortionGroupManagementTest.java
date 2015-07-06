@@ -15,7 +15,7 @@ import mil.nga.giat.geowave.analytic.clustering.ClusteringUtils;
 import mil.nga.giat.geowave.analytic.clustering.DistortionGroupManagement;
 import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.index.StringUtils;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloAdapterStore;
@@ -50,7 +50,7 @@ public class DistortionGroupManagementTest
 	final BasicAccumuloOperations dataOps;
 	final MockInstance mockDataInstance = new MockInstance();
 	final Connector mockDataConnector;
-	final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+	final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 
 	final FeatureDataAdapter adapter;
 	final AccumuloDataStore dataStore;

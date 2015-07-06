@@ -24,7 +24,7 @@ import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
 import mil.nga.giat.geowave.core.store.filter.DistributableFilterList;
 import mil.nga.giat.geowave.core.store.filter.DistributableQueryFilter;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.query.AccumuloConstraintsQuery;
 import mil.nga.giat.geowave.datastore.accumulo.util.CloseableIteratorWrapper;
@@ -55,7 +55,7 @@ public class DistributedRenderQuery extends
 	private final FeatureDataAdapter dataAdapter;
 
 	public DistributedRenderQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final Filter cqlFilter,
 			final FeatureDataAdapter dataAdapter,
 			final DistributableRenderer renderer,
@@ -73,7 +73,7 @@ public class DistributedRenderQuery extends
 
 	public DistributedRenderQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final Filter cqlFilter,
 			final FeatureDataAdapter dataAdapter,
 			final DistributableRenderer renderer,
@@ -90,7 +90,7 @@ public class DistributedRenderQuery extends
 	}
 
 	public DistributedRenderQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final Filter cqlFilter,
@@ -110,7 +110,7 @@ public class DistributedRenderQuery extends
 
 	public DistributedRenderQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final Filter cqlFilter,

@@ -17,6 +17,7 @@ import mil.nga.giat.geowave.core.store.adapter.MemoryAdapterStore;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsStore;
 import mil.nga.giat.geowave.core.store.index.Index;
 import mil.nga.giat.geowave.core.store.index.IndexStore;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.Query;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
@@ -81,18 +82,18 @@ public class VectorDataStore extends
 				accumuloOptions);
 	}
 
-	public CloseableIterator<Index> getIndices() {
+	public CloseableIterator<Index<?, ?>> getIndices() {
 		return indexStore.getIndices();
 	}
 
 	public DataStatisticsStore getStatsStore() {
-		return this.statisticsStore;
+		return statisticsStore;
 	}
 
 	@SuppressWarnings("unchecked")
 	public CloseableIterator<SimpleFeature> query(
 			final FeatureDataAdapter adapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Query query,
 			final Filter filter,
 			final Integer limit,
@@ -137,7 +138,7 @@ public class VectorDataStore extends
 
 	public CloseableIterator<SimpleFeature> query(
 			final FeatureDataAdapter adapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Query query,
 			final Filter filter,
 			final DistributableRenderer distributedRenderer,
@@ -198,7 +199,7 @@ public class VectorDataStore extends
 	@SuppressWarnings("unchecked")
 	public CloseableIterator<SimpleFeature> query(
 			final FeatureDataAdapter adapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Query query,
 			final int width,
 			final int height,
@@ -243,4 +244,5 @@ public class VectorDataStore extends
 				limit);
 
 	}
+
 }

@@ -14,7 +14,7 @@ import mil.nga.giat.geowave.core.index.sfc.data.NumericData;
 import mil.nga.giat.geowave.core.index.sfc.data.NumericRange;
 import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 
 /**
  * This field definition can be used for temporal data (either as a time range
@@ -22,7 +22,7 @@ import mil.nga.giat.geowave.core.store.dimension.DimensionField;
  * 
  */
 public class TimeField implements
-		DimensionField<Time>
+		NumericDimensionField<Time>
 {
 	// DOUBLE null terminate to be extra sure this is a reserved field ID
 	private final static ByteArrayId DEFAULT_FIELD_ID = new ByteArrayId(

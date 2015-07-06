@@ -215,12 +215,25 @@ public class BasicAccumuloOperations implements
 			final String tableName,
 			final boolean createTable )
 			throws TableNotFoundException {
+		return createWriter(
+				tableName,
+				createTable,
+				true);
+	}
+
+	@Override
+	public Writer createWriter(
+			final String tableName,
+			final boolean createTable,
+			final boolean enableVersioning )
+			throws TableNotFoundException {
 		final String qName = getQualifiedTableName(tableName);
 		if (createTable && !connector.tableOperations().exists(
 				qName)) {
 			try {
 				connector.tableOperations().create(
-						qName);
+						qName,
+						enableVersioning);
 			}
 			catch (AccumuloException | AccumuloSecurityException | TableExistsException e) {
 				LOGGER.warn(
@@ -228,12 +241,16 @@ public class BasicAccumuloOperations implements
 						e);
 			}
 		}
+		BatchWriterConfig config = new BatchWriterConfig();
+		config.setMaxMemory(byteBufferSize);
+		config.setMaxLatency(
+				timeoutMillis,
+				TimeUnit.MILLISECONDS);
+		config.setMaxWriteThreads(numThreads);
 		return new mil.nga.giat.geowave.datastore.accumulo.BatchWriterWrapper(
 				connector.createBatchWriter(
 						qName,
-						byteBufferSize,
-						timeoutMillis,
-						numThreads));
+						config));
 	}
 
 	@Override

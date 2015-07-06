@@ -9,7 +9,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.ByteArrayUtils;
 import mil.nga.giat.geowave.core.index.PersistenceUtils;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 
@@ -267,7 +267,7 @@ public class GeoWaveConfiguratorBase
 	public static void addIndex(
 			final Class<?> implementingClass,
 			final Configuration config,
-			final Index index ) {
+			final PrimaryIndex index ) {
 		if (index != null) {
 			config.set(
 					enumToConfKey(
@@ -278,7 +278,7 @@ public class GeoWaveConfiguratorBase
 		}
 	}
 
-	public static Index getIndex(
+	public static PrimaryIndex getIndex(
 			final Class<?> implementingClass,
 			final JobContext context,
 			final ByteArrayId indexId ) {
@@ -386,7 +386,7 @@ public class GeoWaveConfiguratorBase
 				enableFeature);
 	}
 
-	private static Index getIndexInternal(
+	private static PrimaryIndex getIndexInternal(
 			final Class<?> implementingClass,
 			final Configuration configuration,
 			final ByteArrayId indexId ) {
@@ -398,12 +398,12 @@ public class GeoWaveConfiguratorBase
 			final byte[] indexBytes = ByteArrayUtils.byteArrayFromString(input);
 			return PersistenceUtils.fromBinary(
 					indexBytes,
-					Index.class);
+					PrimaryIndex.class);
 		}
 		return null;
 	}
 
-	public static Index[] getIndices(
+	public static PrimaryIndex[] getIndices(
 			final Class<?> implementingClass,
 			final JobContext context ) {
 		return getIndicesInternal(
@@ -411,24 +411,24 @@ public class GeoWaveConfiguratorBase
 				getConfiguration(context));
 	}
 
-	private static Index[] getIndicesInternal(
+	private static PrimaryIndex[] getIndicesInternal(
 			final Class<?> implementingClass,
 			final Configuration configuration ) {
 		final Map<String, String> input = configuration.getValByRegex(enumToConfKey(
 				implementingClass,
 				GeoWaveMetaStore.INDEX) + "*");
 		if (input != null) {
-			final List<Index> indices = new ArrayList<Index>(
+			final List<PrimaryIndex> indices = new ArrayList<PrimaryIndex>(
 					input.size());
 			for (final String indexStr : input.values()) {
 				final byte[] indexBytes = ByteArrayUtils.byteArrayFromString(indexStr);
 				indices.add(PersistenceUtils.fromBinary(
 						indexBytes,
-						Index.class));
+						PrimaryIndex.class));
 			}
-			return indices.toArray(new Index[indices.size()]);
+			return indices.toArray(new PrimaryIndex[indices.size()]);
 		}
-		return new Index[] {};
+		return new PrimaryIndex[] {};
 	}
 
 	private static String getTableNamespaceInternal(

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -45,10 +45,10 @@ public class IngestCommandLineOptions
 		return clearNamespace;
 	}
 
-	public Index getIndex(
-			final Index[] supportedIndices ) {
+	public PrimaryIndex getIndex(
+			final PrimaryIndex[] supportedIndices ) {
 		final IndexCompatibilityVisitor compatibilityVisitor = getSelectedIndexCompatibility(getDimensionalityType());
-		for (final Index i : supportedIndices) {
+		for (final PrimaryIndex i : supportedIndices) {
 			if (compatibilityVisitor.isCompatible(i)) {
 				return i;
 			}
@@ -57,7 +57,7 @@ public class IngestCommandLineOptions
 	}
 
 	public boolean isSupported(
-			final Index[] supportedIndices ) {
+			final PrimaryIndex[] supportedIndices ) {
 		return (getIndex(supportedIndices) != null);
 	}
 
@@ -109,7 +109,7 @@ public class IngestCommandLineOptions
 
 				@Override
 				public boolean isCompatible(
-						final Index index ) {
+						final PrimaryIndex index ) {
 					return true;
 				}
 			};

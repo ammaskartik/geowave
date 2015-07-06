@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.DistributableQuery;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputFormat;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.output.GeoWaveOutputFormat;
@@ -33,7 +33,7 @@ public abstract class GeoWaveJobRunner extends
 	protected String zookeeper;
 	protected String namespace;
 	protected List<DataAdapter<?>> adapters = new ArrayList<DataAdapter<?>>();
-	protected List<Index> indices = new ArrayList<Index>();
+	protected List<PrimaryIndex> indices = new ArrayList<PrimaryIndex>();
 	protected DistributableQuery query = null;
 	protected Integer minInputSplits = null;
 	protected Integer maxInputSplits = null;
@@ -77,7 +77,7 @@ public abstract class GeoWaveJobRunner extends
 			}
 		}
 		if ((indices != null) && (indices.size() > 0)) {
-			for (final Index index : indices) {
+			for (final PrimaryIndex index : indices) {
 				GeoWaveInputFormat.addIndex(
 						conf,
 						index);
@@ -124,7 +124,7 @@ public abstract class GeoWaveJobRunner extends
 	}
 
 	public void addIndex(
-			final Index index ) {
+			final PrimaryIndex index ) {
 		indices.add(index);
 	}
 

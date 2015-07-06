@@ -8,16 +8,16 @@ import mil.nga.giat.geowave.core.store.data.field.ArrayWriter.VariableSizeObject
 import mil.nga.giat.geowave.core.store.dimension.ArrayAdapter;
 import mil.nga.giat.geowave.core.store.dimension.ArrayField;
 import mil.nga.giat.geowave.core.store.dimension.ArrayWrapper;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 
 public class SpatialArrayField extends
 		ArrayField<GeometryWrapper> implements
-		DimensionField<ArrayWrapper<GeometryWrapper>>
+		NumericDimensionField<ArrayWrapper<GeometryWrapper>>
 {
 	private ArrayAdapter<GeometryWrapper> adapter;
 
 	public SpatialArrayField(
-			final DimensionField<GeometryWrapper> elementField ) {
+			final NumericDimensionField<GeometryWrapper> elementField ) {
 		super(
 				elementField);
 		adapter = new ArrayAdapter<GeometryWrapper>(

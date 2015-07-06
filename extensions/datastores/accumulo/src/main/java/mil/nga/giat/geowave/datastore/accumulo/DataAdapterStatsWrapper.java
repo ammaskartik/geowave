@@ -3,12 +3,12 @@ package mil.nga.giat.geowave.datastore.accumulo;
 import java.util.Arrays;
 
 import mil.nga.giat.geowave.core.index.ByteArrayId;
+import mil.nga.giat.geowave.core.store.EntryVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.AdapterPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.IndexedAdapterPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
-import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.statistics.EmptyStatisticVisibility;
 import mil.nga.giat.geowave.core.store.adapter.statistics.RowRangeDataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.RowRangeHistogramStatistics;
@@ -16,17 +16,17 @@ import mil.nga.giat.geowave.core.store.adapter.statistics.StatisticalDataAdapter
 import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 public class DataAdapterStatsWrapper<T> implements
 		StatisticalDataAdapter<T>
 {
 
 	final DataAdapter<T> adapter;
-	final Index index;
+	final PrimaryIndex index;
 
 	public DataAdapterStatsWrapper(
-			final Index index,
+			final PrimaryIndex index,
 			DataAdapter<T> adapter ) {
 		super();
 		this.index = index;
@@ -53,7 +53,7 @@ public class DataAdapterStatsWrapper<T> implements
 	@Override
 	public T decode(
 			IndexedAdapterPersistenceEncoding data,
-			Index index ) {
+			PrimaryIndex index ) {
 		return adapter.decode(
 				data,
 				index);
@@ -115,7 +115,7 @@ public class DataAdapterStatsWrapper<T> implements
 	}
 
 	@Override
-	public DataStatisticsVisibilityHandler<T> getVisibilityHandler(
+	public EntryVisibilityHandler<T> getVisibilityHandler(
 			ByteArrayId statisticsId ) {
 		return (adapter instanceof StatisticalDataAdapter) ? ((StatisticalDataAdapter) adapter).getVisibilityHandler(statisticsId) : new EmptyStatisticVisibility<T>();
 	}

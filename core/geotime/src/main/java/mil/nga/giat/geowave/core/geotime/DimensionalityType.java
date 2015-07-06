@@ -8,22 +8,22 @@ import mil.nga.giat.geowave.core.geotime.store.dimension.LatitudeField;
 import mil.nga.giat.geowave.core.geotime.store.dimension.LongitudeField;
 import mil.nga.giat.geowave.core.geotime.store.dimension.TimeField;
 import mil.nga.giat.geowave.core.index.dimension.NumericDimensionDefinition;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.index.BasicIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 public enum DimensionalityType {
 	SPATIAL(
 			new BasicIndexModel(
-					new DimensionField[] {
+					new NumericDimensionField[] {
 						new LongitudeField(),
 						new LatitudeField()
 					}),
 			new SpatialFactory()),
 	SPATIAL_TEMPORAL(
 			new BasicIndexModel(
-					new DimensionField[] {
+					new NumericDimensionField[] {
 						new LongitudeField(),
 						new LatitudeField(),
 						new TimeField(
@@ -52,7 +52,7 @@ public enum DimensionalityType {
 	}
 
 	public boolean isCompatible(
-			final Index index ) {
+			final PrimaryIndex index ) {
 		if ((index == null) || (index.getIndexStrategy() == null) || (indexStrategyFactory == null)) {
 			return false;
 		}

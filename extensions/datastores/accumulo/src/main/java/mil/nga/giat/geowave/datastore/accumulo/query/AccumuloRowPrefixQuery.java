@@ -6,7 +6,7 @@ import java.util.List;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.ByteArrayRange;
 import mil.nga.giat.geowave.core.store.ScanCallback;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.util.CloseableIteratorWrapper;
 
 /**
@@ -18,7 +18,7 @@ public class AccumuloRowPrefixQuery extends
 {
 
 	public AccumuloRowPrefixQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final ByteArrayId rowPrefix,
 			final ScanCallback<CloseableIteratorWrapper<?>> scanCallback,
 			final String... authorizations ) {
@@ -30,7 +30,7 @@ public class AccumuloRowPrefixQuery extends
 	}
 
 	public AccumuloRowPrefixQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final ByteArrayId rowPrefix,
 			final String... authorizations ) {
 		super(

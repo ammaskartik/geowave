@@ -20,7 +20,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.ByteArrayUtils;
 import mil.nga.giat.geowave.core.index.PersistenceUtils;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloAdapterStore;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloIndexStore;
@@ -124,7 +124,7 @@ public class CqlQueryFilterIteratorTest
 
 		initScanner(
 				scanner,
-				indexStore.getIndex(new ByteArrayId(
+				(PrimaryIndex) indexStore.getIndex(new ByteArrayId(
 						IndexType.SPATIAL_VECTOR.getDefaultId())),
 				(DataAdapter<SimpleFeature>) adapterStore.getAdapter(new ByteArrayId(
 						"CqlQueryFilterIteratorTest")),
@@ -221,7 +221,7 @@ public class CqlQueryFilterIteratorTest
 
 	private void initScanner(
 			ScannerBase scanner,
-			Index index,
+			PrimaryIndex index,
 			DataAdapter<SimpleFeature> dataAdapter,
 			Filter cqlFilter ) {
 		final IteratorSetting iteratorSettings = new IteratorSetting(

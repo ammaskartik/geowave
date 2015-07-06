@@ -7,7 +7,7 @@ import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.ingest.DataAdapterProvider;
 import mil.nga.giat.geowave.core.ingest.IngestCommandLineOptions;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloCommandLineOptions;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.output.GeoWaveOutputFormat;
 
@@ -83,7 +83,7 @@ abstract public class AbstractMapReduceIngest<T extends Persistable & DataAdapte
 					GLOBAL_VISIBILITY_KEY,
 					ingestOptions.getVisibility());
 		}
-		final Index primaryIndex = ingestOptions.getIndex(parentPlugin.getSupportedIndices());
+		final PrimaryIndex primaryIndex = ingestOptions.getIndex(parentPlugin.getSupportedIndices());
 		if (primaryIndex != null) {
 			conf.set(
 					PRIMARY_INDEX_ID_KEY,
@@ -132,9 +132,9 @@ abstract public class AbstractMapReduceIngest<T extends Persistable & DataAdapte
 				primaryIndex);
 
 		// add required indices
-		final Index[] requiredIndices = parentPlugin.getRequiredIndices();
+		final PrimaryIndex[] requiredIndices = parentPlugin.getRequiredIndices();
 		if (requiredIndices != null) {
-			for (final Index requiredIndex : requiredIndices) {
+			for (final PrimaryIndex requiredIndex : requiredIndices) {
 				GeoWaveOutputFormat.addIndex(
 						job.getConfiguration(),
 						requiredIndex);

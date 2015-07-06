@@ -16,6 +16,7 @@ import mil.nga.giat.geowave.core.geotime.store.statistics.BoundingBoxDataStatist
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
+import mil.nga.giat.geowave.core.store.EntryVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.AbstractDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.NativeFieldHandler;
 import mil.nga.giat.geowave.core.store.adapter.PersistentIndexFieldHandler;
@@ -23,7 +24,6 @@ import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.NativeFieldHandler.RowBuilder;
 import mil.nga.giat.geowave.core.store.adapter.statistics.CountDataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
-import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.statistics.FieldTypeStatisticVisibility;
 import mil.nga.giat.geowave.core.store.adapter.statistics.RowRangeDataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.StatisticalDataAdapter;
@@ -34,7 +34,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
 import mil.nga.giat.geowave.core.store.data.field.FieldVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOptions;
@@ -168,7 +168,7 @@ public class AccumuloDataStoreStatsTest
 
 	private void runtest() {
 
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		final WritableDataAdapter<TestGeometry> adapter = new TestGeometryAdapter();
 
 		final Geometry testGeoFilter = factory.createPolygon(new Coordinate[] {
@@ -493,7 +493,7 @@ public class AccumuloDataStoreStatsTest
 			}
 		};
 
-		private final static DataStatisticsVisibilityHandler<TestGeometry> GEOMETRY_VISIBILITY_HANDLER = new FieldTypeStatisticVisibility<TestGeometry>(
+		private final static EntryVisibilityHandler<TestGeometry> GEOMETRY_VISIBILITY_HANDLER = new FieldTypeStatisticVisibility<TestGeometry>(
 				GeometryWrapper.class);
 		private static final NativeFieldHandler<TestGeometry, Object> ID_FIELD_HANDLER = new NativeFieldHandler<TestGeometry, Object>() {
 
@@ -584,7 +584,7 @@ public class AccumuloDataStoreStatsTest
 		}
 
 		@Override
-		public DataStatisticsVisibilityHandler<TestGeometry> getVisibilityHandler(
+		public EntryVisibilityHandler<TestGeometry> getVisibilityHandler(
 				final ByteArrayId statisticsId ) {
 			return GEOMETRY_VISIBILITY_HANDLER;
 		}

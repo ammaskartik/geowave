@@ -14,7 +14,7 @@ import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.geotime.store.query.SpatialQuery;
 import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.DataStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 
@@ -48,7 +48,7 @@ public class GeotoolsQueryExample
 	private static MiniAccumuloCluster accumulo;
 	private static DataStore dataStore;
 
-	private static final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+	private static final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 
 	// Points (to be ingested into GeoWave Data Store)
 	private static final Coordinate washingtonMonument = new Coordinate(

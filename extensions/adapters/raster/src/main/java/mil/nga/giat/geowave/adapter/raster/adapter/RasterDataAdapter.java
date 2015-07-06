@@ -71,13 +71,13 @@ import mil.nga.giat.geowave.core.index.PersistenceUtils;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.index.dimension.NumericDimensionDefinition;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
+import mil.nga.giat.geowave.core.store.EntryVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.AdapterPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.adapter.FitToIndexPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.adapter.IndexDependentDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.IndexedAdapterPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.adapter.statistics.CountDataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
-import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.statistics.FieldIdStatisticVisibility;
 import mil.nga.giat.geowave.core.store.adapter.statistics.StatisticalDataAdapter;
 import mil.nga.giat.geowave.core.store.data.PersistentDataset;
@@ -86,7 +86,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AttachedIteratorDataAdapter;
 import mil.nga.giat.geowave.datastore.accumulo.IteratorConfig;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.HadoopDataAdapter;
@@ -176,7 +176,7 @@ public class RasterDataAdapter implements
 	private double[] backgroundValuesPerBand;
 	private boolean buildPyramid;
 	private ByteArrayId[] supportedStatsIds;
-	private DataStatisticsVisibilityHandler<GridCoverage> visibilityHandler;
+	private EntryVisibilityHandler<GridCoverage> visibilityHandler;
 	private RootMergeStrategy<?> mergeStrategy;
 	private boolean equalizeHistogram;
 	private Interpolation interpolation;
@@ -400,7 +400,7 @@ public class RasterDataAdapter implements
 
 	@Override
 	public Iterator<GridCoverage> convertToIndex(
-			final Index index,
+			final PrimaryIndex index,
 			final GridCoverage gridCoverage ) {
 		if (index.getIndexStrategy() instanceof HierarchicalNumericIndexStrategy) {
 			final CoordinateReferenceSystem sourceCrs = gridCoverage.getCoordinateReferenceSystem();
@@ -816,7 +816,7 @@ public class RasterDataAdapter implements
 	@Override
 	public GridCoverage decode(
 			final IndexedAdapterPersistenceEncoding data,
-			final Index index ) {
+			final PrimaryIndex index ) {
 		final Object rasterTile = data.getAdapterExtendedData().getValue(
 				DATA_FIELD_ID);
 		if ((rasterTile == null) || !(rasterTile instanceof RasterTile)) {
@@ -831,7 +831,7 @@ public class RasterDataAdapter implements
 	public GridCoverage getCoverageFromRasterTile(
 			final RasterTile rasterTile,
 			final ByteArrayId insertionId,
-			final Index index ) {
+			final PrimaryIndex index ) {
 		final MultiDimensionalNumericData indexRange = index.getIndexStrategy().getRangeForId(
 				insertionId);
 		final NumericDimensionDefinition[] orderedDimensions = index.getIndexStrategy().getOrderedDimensionDefinitions();
@@ -1538,7 +1538,7 @@ public class RasterDataAdapter implements
 	}
 
 	@Override
-	public DataStatisticsVisibilityHandler<GridCoverage> getVisibilityHandler(
+	public EntryVisibilityHandler<GridCoverage> getVisibilityHandler(
 			final ByteArrayId statisticsId ) {
 		return visibilityHandler;
 	}
@@ -1727,7 +1727,7 @@ public class RasterDataAdapter implements
 
 	@Override
 	public IteratorConfig[] getAttachedIteratorConfig(
-			final Index index ) {
+			final PrimaryIndex index ) {
 		final EnumSet<IteratorScope> visibilityCombinerScope = EnumSet.of(IteratorScope.scan);
 		final RasterTileCombinerConfig tileCombiner = new RasterTileCombinerConfig(
 				new IteratorSetting(

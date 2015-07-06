@@ -2,11 +2,13 @@ package mil.nga.giat.geowave.core.store.query;
 
 import java.util.List;
 
+import mil.nga.giat.geowave.core.index.ByteArrayRange;
 import mil.nga.giat.geowave.core.index.NumericIndexStrategy;
 import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.SecondaryIndex;
 
 /**
  * This interface fully describes a query
@@ -39,7 +41,7 @@ public interface Query
 	 * @return A flag indicating if this query supports the index
 	 */
 	public boolean isSupported(
-			Index index );
+			Index<?, ?> index );
 
 	/**
 	 * Return a set of constraints to apply to the primary index based on the
@@ -55,4 +57,18 @@ public interface Query
 	 */
 	public MultiDimensionalNumericData getIndexConstraints(
 			NumericIndexStrategy indexStrategy );
+
+	/**
+	 * Return a set of constraints to apply to the given secondary index.
+	 * 
+	 * @param index
+	 *            the index to extract constraints for
+	 * @return A collection of ranges over secondary index keys.
+	 */
+	public List<ByteArrayRange> getSecondaryIndexConstraints(
+			SecondaryIndex index );
+
+	public List<QueryFilter> getSecondaryQueryFilter(
+			SecondaryIndex index );
+
 }

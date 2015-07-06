@@ -17,7 +17,7 @@ import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.statistics.CountDataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.Query;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloAdapterStore;
@@ -35,7 +35,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 public class BasicKafkaIT extends
 		KafkaTestBase<GpxTrack>
 {
-	private static final Index INDEX = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+	private static final PrimaryIndex INDEX = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 	private static final Map<ByteArrayId, Integer> EXPECTED_COUNT_PER_ADAPTER_ID = new HashMap<ByteArrayId, Integer>();
 	static {
 		EXPECTED_COUNT_PER_ADAPTER_ID.put(

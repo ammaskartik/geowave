@@ -15,25 +15,25 @@ import mil.nga.giat.geowave.core.store.CloseableIterator;
 public class MemoryIndexStore implements
 		IndexStore
 {
-	private final Map<ByteArrayId, Index> indexMap = new HashMap<ByteArrayId, Index>();
+	private final Map<ByteArrayId, Index<?, ?>> indexMap = new HashMap<ByteArrayId, Index<?, ?>>();
 
 	public MemoryIndexStore(
-			final Index[] initialIndices ) {
-		for (final Index index : initialIndices) {
+			final PrimaryIndex[] initialIndices ) {
+		for (final PrimaryIndex index : initialIndices) {
 			addIndex(index);
 		}
 	}
 
 	@Override
 	public void addIndex(
-			final Index index ) {
+			final Index<?, ?> index ) {
 		indexMap.put(
 				index.getId(),
 				index);
 	}
 
 	@Override
-	public Index getIndex(
+	public Index<?, ?> getIndex(
 			final ByteArrayId indexId ) {
 		return indexMap.get(indexId);
 	}
@@ -45,9 +45,9 @@ public class MemoryIndexStore implements
 	}
 
 	@Override
-	public CloseableIterator<Index> getIndices() {
-		return new CloseableIterator.Wrapper<Index>(
-				new ArrayList<Index>(
+	public CloseableIterator<Index<?, ?>> getIndices() {
+		return new CloseableIterator.Wrapper<Index<?, ?>>(
+				new ArrayList<Index<?, ?>>(
 						indexMap.values()).iterator());
 	}
 

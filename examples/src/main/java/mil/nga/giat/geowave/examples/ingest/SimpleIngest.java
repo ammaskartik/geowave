@@ -10,7 +10,7 @@ import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter;
 import mil.nga.giat.geowave.core.geotime.GeometryUtils;
 import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.store.DataStore;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloAdapterStore;
@@ -115,7 +115,7 @@ public class SimpleIngest
 		final FeatureDataAdapter adapter = createDataAdapter(point);
 
 		// This describes how to index the data
-		final Index index = createSpatialIndex();
+		final PrimaryIndex index = createSpatialIndex();
 
 		// features require a featureID - this should be unqiue as it's a
 		// foreign key on the feature
@@ -234,7 +234,7 @@ public class SimpleIngest
 	 * 
 	 * @return GeoWave index for a default SPATIAL index
 	 */
-	public static Index createSpatialIndex() {
+	public static PrimaryIndex createSpatialIndex() {
 
 		// Reasonable values for spatial and spatio-temporal are provided
 		// through static factory methods.

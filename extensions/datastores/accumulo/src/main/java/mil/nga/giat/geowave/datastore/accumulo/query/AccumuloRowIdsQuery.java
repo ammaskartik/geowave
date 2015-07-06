@@ -6,7 +6,7 @@ import java.util.List;
 
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.ByteArrayRange;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.apache.accumulo.core.client.ScannerBase;
 
@@ -21,7 +21,7 @@ public class AccumuloRowIdsQuery extends
 	final Collection<ByteArrayId> rows;
 
 	public AccumuloRowIdsQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final Collection<ByteArrayId> rows,
 			final String[] authorizations ) {
 		super(

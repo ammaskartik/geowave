@@ -13,11 +13,11 @@ import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.ScanCallback;
 import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 import mil.nga.giat.geowave.core.store.filter.FilterList;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.util.CloseableIteratorWrapper;
 import mil.nga.giat.geowave.datastore.accumulo.util.CloseableIteratorWrapper.ScannerClosableWrapper;
@@ -38,7 +38,7 @@ public abstract class AccumuloFilteredIndexQuery extends
 	private Collection<String> fieldIds = null;
 
 	public AccumuloFilteredIndexQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final ScanCallback<?> scanCallback,
 			final String... authorizations ) {
 		super(
@@ -49,7 +49,7 @@ public abstract class AccumuloFilteredIndexQuery extends
 
 	public AccumuloFilteredIndexQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final ScanCallback<?> scanCallback,
 			final String... authorizations ) {
 		super(
@@ -149,7 +149,7 @@ public abstract class AccumuloFilteredIndexQuery extends
 			final CloseableIterator<DataAdapter<?>> dataAdapters ) {
 
 		Set<ByteArrayId> uniqueDimensions = new HashSet<>();
-		for (final DimensionField<? extends CommonIndexValue> dimension : index.getIndexModel().getDimensions()) {
+		for (final NumericDimensionField<? extends CommonIndexValue> dimension : index.getIndexModel().getDimensions()) {
 			uniqueDimensions.add(dimension.getFieldId());
 		}
 

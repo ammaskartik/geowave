@@ -8,16 +8,16 @@ import mil.nga.giat.geowave.core.store.data.field.ArrayWriter.FixedSizeObjectArr
 import mil.nga.giat.geowave.core.store.dimension.ArrayAdapter;
 import mil.nga.giat.geowave.core.store.dimension.ArrayField;
 import mil.nga.giat.geowave.core.store.dimension.ArrayWrapper;
-import mil.nga.giat.geowave.core.store.dimension.DimensionField;
+import mil.nga.giat.geowave.core.store.dimension.NumericDimensionField;
 
 public class TimeArrayField extends
 		ArrayField<Time> implements
-		DimensionField<ArrayWrapper<Time>>
+		NumericDimensionField<ArrayWrapper<Time>>
 {
 	private ArrayAdapter<Time> adapter;
 
 	public TimeArrayField(
-			final DimensionField<Time> elementField ) {
+			final NumericDimensionField<Time> elementField ) {
 		super(
 				elementField);
 		adapter = new ArrayAdapter<Time>(

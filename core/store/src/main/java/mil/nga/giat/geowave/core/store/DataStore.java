@@ -7,7 +7,7 @@ import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.store.adapter.DataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.data.VisibilityWriter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.Query;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 
@@ -27,7 +27,7 @@ public interface DataStore
 	 *         operations
 	 */
 	public <T> IndexWriter createIndexWriter(
-			Index index );
+			PrimaryIndex index );
 
 	/**
 	 * Ingests a single entry into the data store
@@ -43,7 +43,7 @@ public interface DataStore
 	 */
 	public <T> List<ByteArrayId> ingest(
 			final WritableDataAdapter<T> writableAdapter,
-			Index index,
+			PrimaryIndex index,
 			T entry );
 
 	/**
@@ -60,7 +60,7 @@ public interface DataStore
 	 */
 	public <T> void ingest(
 			final WritableDataAdapter<T> writableAdapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Iterator<T> entryIterator );
 
 	/**
@@ -79,7 +79,7 @@ public interface DataStore
 	 */
 	public <T> List<ByteArrayId> ingest(
 			final WritableDataAdapter<T> writableAdapter,
-			final Index index,
+			final PrimaryIndex index,
 			final T entry,
 			final VisibilityWriter<T> customFieldVisibilityWriter );
 
@@ -100,7 +100,7 @@ public interface DataStore
 	 */
 	public <T> void ingest(
 			final WritableDataAdapter<T> writableAdapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Iterator<T> entryIterator,
 			final IngestCallback<T> ingestCallback );
 
@@ -123,7 +123,7 @@ public interface DataStore
 	 */
 	public <T> void ingest(
 			final WritableDataAdapter<T> writableAdapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Iterator<T> entryIterator,
 			final IngestCallback<T> ingestCallback,
 			final VisibilityWriter<T> customFieldVisibilityWriter );
@@ -159,7 +159,7 @@ public interface DataStore
 	 */
 	@Deprecated
 	public <T> T getEntry(
-			final Index index,
+			final PrimaryIndex index,
 			final ByteArrayId rowId );
 
 	/**
@@ -182,7 +182,7 @@ public interface DataStore
 	 *         in the data store for the given index.
 	 */
 	public <T> T getEntry(
-			final Index index,
+			final PrimaryIndex index,
 			final ByteArrayId dataId,
 			final ByteArrayId adapterId,
 			final String... additionalAuthorizations );
@@ -205,7 +205,7 @@ public interface DataStore
 	 *         be deleted.
 	 */
 	public boolean deleteEntry(
-			final Index index,
+			final PrimaryIndex index,
 			final ByteArrayId dataId,
 			final ByteArrayId adapterId,
 			final String... authorizations );
@@ -225,7 +225,7 @@ public interface DataStore
 	 *         entry on ingest into the given index.
 	 */
 	public <T> CloseableIterator<T> getEntriesByPrefix(
-			final Index index,
+			final PrimaryIndex index,
 			final ByteArrayId rowPrefix,
 			final String... authorizations );
 
@@ -263,7 +263,7 @@ public interface DataStore
 	 *         iterator after it is no longer needed.
 	 */
 	public <T> CloseableIterator<T> query(
-			Index index,
+			PrimaryIndex index,
 			final Query query );
 
 	/**
@@ -285,7 +285,7 @@ public interface DataStore
 	 *         iterator after it is no longer needed.
 	 */
 	public <T> CloseableIterator<T> query(
-			Index index,
+			PrimaryIndex index,
 			final Query query,
 			final QueryOptions queryOptions );
 
@@ -309,7 +309,7 @@ public interface DataStore
 	 */
 	public <T> CloseableIterator<T> query(
 			DataAdapter<T> adapter,
-			Index index,
+			PrimaryIndex index,
 			final Query query );
 
 	/**
@@ -391,7 +391,7 @@ public interface DataStore
 	 *         iterator after it is no longer needed.
 	 */
 	public <T> CloseableIterator<T> query(
-			Index index,
+			PrimaryIndex index,
 			final Query query,
 			final int limit );
 
@@ -418,7 +418,7 @@ public interface DataStore
 	 */
 	public <T> CloseableIterator<T> query(
 			DataAdapter<T> adapter,
-			Index index,
+			PrimaryIndex index,
 			final Query query,
 			final int limit );
 
@@ -468,7 +468,7 @@ public interface DataStore
 	 */
 	public <T> CloseableIterator<T> query(
 			final DataAdapter<T> adapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Query query,
 			final int limit,
 			final String... authorizations );
@@ -498,7 +498,7 @@ public interface DataStore
 	 */
 	public <T> CloseableIterator<T> query(
 			final DataAdapter<T> adapter,
-			final Index index,
+			final PrimaryIndex index,
 			final Query query,
 			final Integer limit,
 			final ScanCallback<?> scanCallback,

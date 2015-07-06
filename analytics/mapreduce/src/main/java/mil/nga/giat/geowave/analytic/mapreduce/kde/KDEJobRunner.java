@@ -14,7 +14,7 @@ import mil.nga.giat.geowave.core.store.DataStore;
 import mil.nga.giat.geowave.core.store.IndexWriter;
 import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
@@ -353,7 +353,7 @@ public class KDEJobRunner extends
 			final Job statsReducer,
 			final String statsNamespace )
 			throws Exception {
-		final Index index = IndexType.SPATIAL_RASTER.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_RASTER.createDefaultIndex();
 		final WritableDataAdapter<?> adapter = RasterUtils.createDataAdapterTypeDouble(
 				coverageName,
 				AccumuloKDEReducer.NUM_BANDS,
@@ -372,7 +372,7 @@ public class KDEJobRunner extends
 			final Job job,
 			final String namespace,
 			final WritableDataAdapter<?> adapter,
-			final Index index )
+			final PrimaryIndex index )
 			throws Exception {
 		final AccumuloOperations ops = new BasicAccumuloOperations(
 				zookeeper,

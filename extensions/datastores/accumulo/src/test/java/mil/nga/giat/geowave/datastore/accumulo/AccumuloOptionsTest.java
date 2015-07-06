@@ -21,7 +21,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloIndexWriter;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloOperations;
@@ -102,7 +102,7 @@ public class AccumuloOptionsTest
 	@Test
 	public void testIndexOptions() {
 
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		final WritableDataAdapter<TestGeometry> adapter = new TestGeometryAdapter();
 
 		accumuloOptions.setCreateTable(false);
@@ -182,7 +182,7 @@ public class AccumuloOptionsTest
 	@Test
 	public void testLocalityGroups() {
 
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		final WritableDataAdapter<TestGeometry> adapter = new TestGeometryAdapter();
 
 		final String tableName = StringUtils.stringFromBinary(index.getId().getBytes());
@@ -264,7 +264,7 @@ public class AccumuloOptionsTest
 	@Test
 	public void testAdapterOptions() {
 
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		final WritableDataAdapter<TestGeometry> adapter = new TestGeometryAdapter();
 
 		accumuloOptions.setPersistAdapter(false);
@@ -343,7 +343,7 @@ public class AccumuloOptionsTest
 	@Test
 	public void testAlternateIndexOption() {
 
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		final WritableDataAdapter<TestGeometry> adapter = new TestGeometryAdapter();
 
 		final ByteArrayId adapterId = adapter.getAdapterId();
@@ -475,7 +475,7 @@ public class AccumuloOptionsTest
 
 	@Test
 	public void testDeleteAll() {
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		final WritableDataAdapter<TestGeometry> adapter0 = new TestGeometryAdapter();
 		final WritableDataAdapter<TestGeometry> adapter1 = new AnotherAdapter();
 

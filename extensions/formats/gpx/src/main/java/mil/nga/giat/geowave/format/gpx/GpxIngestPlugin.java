@@ -27,7 +27,7 @@ import mil.nga.giat.geowave.core.store.CloseableIterator;
 import mil.nga.giat.geowave.core.store.adapter.WritableDataAdapter;
 import mil.nga.giat.geowave.core.store.data.field.FieldVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.visibility.GlobalVisibilityHandler;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 
 import org.apache.avro.Schema;
 import org.apache.commons.io.FilenameUtils;
@@ -57,10 +57,10 @@ public class GpxIngestPlugin extends
 	private static final AtomicLong currentFreeTrackId = new AtomicLong(
 			0);
 
-	private final Index[] supportedIndices;
+	private final PrimaryIndex[] supportedIndices;
 
 	public GpxIngestPlugin() {
-		supportedIndices = new Index[] {
+		supportedIndices = new PrimaryIndex[] {
 			IndexType.SPATIAL_VECTOR.createDefaultIndex(),
 			IndexType.SPATIAL_TEMPORAL_VECTOR.createDefaultIndex()
 		};
@@ -130,7 +130,7 @@ public class GpxIngestPlugin extends
 	}
 
 	@Override
-	public Index[] getSupportedIndices() {
+	public PrimaryIndex[] getSupportedIndices() {
 		return supportedIndices;
 	}
 
@@ -237,8 +237,8 @@ public class GpxIngestPlugin extends
 	}
 
 	@Override
-	public Index[] getRequiredIndices() {
-		return new Index[] {};
+	public PrimaryIndex[] getRequiredIndices() {
+		return new PrimaryIndex[] {};
 	}
 
 	private Map<String, Map<String, String>> getAdditionalData(

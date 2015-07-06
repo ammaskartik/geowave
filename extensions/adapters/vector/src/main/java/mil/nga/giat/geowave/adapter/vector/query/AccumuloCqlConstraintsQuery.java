@@ -13,7 +13,7 @@ import mil.nga.giat.geowave.core.index.sfc.data.MultiDimensionalNumericData;
 import mil.nga.giat.geowave.core.store.filter.DistributableFilterList;
 import mil.nga.giat.geowave.core.store.filter.DistributableQueryFilter;
 import mil.nga.giat.geowave.core.store.filter.QueryFilter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.query.AccumuloConstraintsQuery;
 
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -32,7 +32,7 @@ public class AccumuloCqlConstraintsQuery extends
 	private final FeatureDataAdapter dataAdapter;
 
 	public AccumuloCqlConstraintsQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final Filter cqlFilter,
 			final FeatureDataAdapter dataAdapter,
 			final String[] authorizations ) {
@@ -48,7 +48,7 @@ public class AccumuloCqlConstraintsQuery extends
 
 	public AccumuloCqlConstraintsQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final Filter cqlFilter,
 			final FeatureDataAdapter dataAdapter,
 			final String[] authorizations ) {
@@ -63,7 +63,7 @@ public class AccumuloCqlConstraintsQuery extends
 	}
 
 	public AccumuloCqlConstraintsQuery(
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final Filter cqlFilter,
@@ -81,7 +81,7 @@ public class AccumuloCqlConstraintsQuery extends
 
 	public AccumuloCqlConstraintsQuery(
 			final List<ByteArrayId> adapterIds,
-			final Index index,
+			final PrimaryIndex index,
 			final MultiDimensionalNumericData constraints,
 			final List<QueryFilter> queryFilters,
 			final Filter cqlFilter,

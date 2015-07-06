@@ -35,7 +35,7 @@ import mil.nga.giat.geowave.core.store.adapter.statistics.RowRangeHistogramStati
 import mil.nga.giat.geowave.core.store.adapter.statistics.StatisticalDataAdapter;
 import mil.nga.giat.geowave.core.store.data.visibility.GlobalVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.visibility.UniformVisibilityWriter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.query.DistributableQuery;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloAdapterStore;
@@ -101,8 +101,10 @@ public class GeoWaveBasicIT extends
 
 	@Test
 	public void testIngestAndQuerySpatialPointsAndLines() {
-		System.getProperties().put("AccumuloIndexWriter.skipFlush", "true");
-		final Index spatialIndex = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		System.getProperties().put(
+				"AccumuloIndexWriter.skipFlush",
+				"true");
+		final PrimaryIndex spatialIndex = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		// ingest both lines and points
 		testLocalIngest(
 				IndexType.SPATIAL_VECTOR,
@@ -265,7 +267,7 @@ public class GeoWaveBasicIT extends
 
 	public void testStats(
 			final File[] inputFiles,
-			final Index index ) {
+			final PrimaryIndex index ) {
 		final LocalFileIngestPlugin<SimpleFeature> localFileIngest = new GeoToolsVectorDataStoreIngestPlugin(
 				Filter.INCLUDE);
 		final Map<ByteArrayId, StatisticsCache> statsCache = new HashMap<ByteArrayId, StatisticsCache>();
@@ -396,8 +398,10 @@ public class GeoWaveBasicIT extends
 
 	@Test
 	public void testIngestAndQuerySpatialTemporalPointsAndLines() {
-		System.getProperties().put("AccumuloIndexWriter.skipFlush", "true");
-		final Index spatialTemporalIndex = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		System.getProperties().put(
+				"AccumuloIndexWriter.skipFlush",
+				"true");
+		final PrimaryIndex spatialTemporalIndex = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 		// ingest both lines and points
 		testLocalIngest(
 				IndexType.SPATIAL_TEMPORAL_VECTOR,
@@ -619,7 +623,7 @@ public class GeoWaveBasicIT extends
 				serTestType);
 		final FeatureDataAdapter serAdapter = new FeatureDataAdapter(
 				serTestType);
-		final Index index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
+		final PrimaryIndex index = IndexType.SPATIAL_VECTOR.createDefaultIndex();
 
 		for (final Map.Entry<Class, Object> arg : args.entrySet()) {
 			serBuilder.set(
@@ -763,7 +767,7 @@ public class GeoWaveBasicIT extends
 	private void testQuery(
 			final URL savedFilterResource,
 			final URL[] expectedResultsResources,
-			final Index index,
+			final PrimaryIndex index,
 			final String queryDescription )
 			throws Exception {
 		LOGGER.info("querying " + queryDescription);
@@ -844,7 +848,7 @@ public class GeoWaveBasicIT extends
 						accumuloOperations),
 				accumuloOperations);
 		final DistributableQuery query = resourceToQuery(savedFilterResource);
-		final Index index = indexType.createDefaultIndex();
+		final PrimaryIndex index = indexType.createDefaultIndex();
 		final CloseableIterator<?> actualResults;
 
 		actualResults = geowaveStore.query(

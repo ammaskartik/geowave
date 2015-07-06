@@ -1,7 +1,7 @@
 package mil.nga.giat.geowave.test.service;
 
 import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter;
-import mil.nga.giat.geowave.core.store.index.Index;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
 import mil.nga.giat.geowave.datastore.accumulo.BasicAccumuloOperations;
 import mil.nga.giat.geowave.examples.ingest.SimpleIngest;
@@ -98,7 +98,7 @@ public class GeoWaveIngestGeoserverIT extends
 		AccumuloDataStore ds = new AccumuloDataStore(
 				bao);
 		SimpleFeatureType sft = SimpleIngest.createPointFeatureType();
-		Index idx = SimpleIngest.createSpatialIndex();
+		PrimaryIndex idx = SimpleIngest.createSpatialIndex();
 		FeatureDataAdapter fda = SimpleIngest.createDataAdapter(sft);
 		List<SimpleFeature> features = SimpleIngest.getGriddedFeatures(
 				new SimpleFeatureBuilder(

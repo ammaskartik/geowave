@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import mil.nga.giat.geowave.adapter.vector.index.SecondaryIndexManager;
 import mil.nga.giat.geowave.adapter.vector.plugin.GeoWaveGTDataStore;
 import mil.nga.giat.geowave.adapter.vector.plugin.visibility.AdaptorProxyFieldLevelVisibilityHandler;
 import mil.nga.giat.geowave.adapter.vector.plugin.visibility.JsonDefinitionColumnVisibilityManagement;
@@ -16,7 +17,9 @@ import mil.nga.giat.geowave.adapter.vector.utils.TimeDescriptors;
 import mil.nga.giat.geowave.adapter.vector.utils.TimeDescriptors.TimeDescriptorConfiguration;
 import mil.nga.giat.geowave.core.geotime.store.dimension.Time;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
+import mil.nga.giat.geowave.core.index.PersistenceUtils;
 import mil.nga.giat.geowave.core.index.StringUtils;
+import mil.nga.giat.geowave.core.store.EntryVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.AbstractDataAdapter;
 import mil.nga.giat.geowave.core.store.adapter.AdapterPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.adapter.IndexFieldHandler;
@@ -24,7 +27,6 @@ import mil.nga.giat.geowave.core.store.adapter.NativeFieldHandler;
 import mil.nga.giat.geowave.core.store.adapter.NativeFieldHandler.RowBuilder;
 import mil.nga.giat.geowave.core.store.adapter.PersistentIndexFieldHandler;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
-import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.statistics.StatisticalDataAdapter;
 import mil.nga.giat.geowave.core.store.data.field.FieldReader;
 import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
@@ -33,6 +35,8 @@ import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.data.visibility.VisibilityManagement;
 import mil.nga.giat.geowave.core.store.index.CommonIndexModel;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
+import mil.nga.giat.geowave.core.store.index.SecondaryIndex;
+import mil.nga.giat.geowave.core.store.index.SecondaryIndexDataAdapter;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.HadoopDataAdapter;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.HadoopWritableSerializer;
 
@@ -94,7 +98,8 @@ import org.opengis.referencing.operation.MathTransform;
 public class FeatureDataAdapter extends
 		AbstractDataAdapter<SimpleFeature> implements
 		StatisticalDataAdapter<SimpleFeature>,
-		HadoopDataAdapter<SimpleFeature, FeatureWritable>
+		HadoopDataAdapter<SimpleFeature, FeatureWritable>,
+		SecondaryIndexDataAdapter<SimpleFeature>
 {
 	private final static Logger LOGGER = Logger.getLogger(FeatureDataAdapter.class);
 	// the original coordinate system will always be represented internally by
@@ -107,6 +112,7 @@ public class FeatureDataAdapter extends
 	private SimpleFeatureType reprojectedType;
 	private MathTransform transform;
 	private StatsManager statsManager;
+	private SecondaryIndexManager secondaryIndexManager;
 
 	private String visibilityAttributeName = "GEOWAVE_VISIBILITY";
 	private VisibilityManagement<SimpleFeature> fieldVisibilityManagement;
@@ -114,7 +120,7 @@ public class FeatureDataAdapter extends
 
 	// should change this anytime the serialized image changes. Stay negative.
 	// so 0xa0, 0xa1, 0xa2 etc.
-	final static byte VERSION = (byte) 0xa0;
+	final static byte VERSION = (byte) 0xa1;
 
 	protected FeatureDataAdapter() {}
 
@@ -200,6 +206,10 @@ public class FeatureDataAdapter extends
 				persistedType,
 				reprojectedType,
 				transform);
+		secondaryIndexManager = new SecondaryIndexManager(
+				this,
+				persistedType,
+				statsManager);
 	}
 
 	private static List<NativeFieldHandler<SimpleFeature, Object>> typeToFieldHandlers(
@@ -278,7 +288,6 @@ public class FeatureDataAdapter extends
 		reprojectedType = builder.buildFeatureType();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public FieldReader<Object> getReader(
 			final ByteArrayId fieldId ) {
@@ -287,7 +296,6 @@ public class FeatureDataAdapter extends
 		return (FieldReader<Object>) FieldUtils.getDefaultReaderForClass(bindingClass);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public FieldWriter<SimpleFeature, Object> getWriter(
 			final ByteArrayId fieldId ) {
@@ -350,9 +358,10 @@ public class FeatureDataAdapter extends
 			namespaceBytes = new byte[0];
 		}
 		final byte[] encodedTypeBytes = StringUtils.stringToBinary(encodedType);
-		// 25 bytes is the 6 four byte length fields and one byte for the
+		final byte[] secondaryIndexBytes = PersistenceUtils.toBinary(secondaryIndexManager);
+		// 29 bytes is the 7 four byte length fields and one byte for the
 		// version
-		final ByteBuffer buf = ByteBuffer.allocate(encodedTypeBytes.length + typeNameBytes.length + namespaceBytes.length + fieldVisibilityAtributeNameBytes.length + visibilityManagementClassNameBytes.length + attrBytes.length + axisBytes.length + 25);
+		final ByteBuffer buf = ByteBuffer.allocate(encodedTypeBytes.length + typeNameBytes.length + namespaceBytes.length + fieldVisibilityAtributeNameBytes.length + visibilityManagementClassNameBytes.length + attrBytes.length + axisBytes.length + secondaryIndexBytes.length + 29);
 		buf.put(VERSION);
 		buf.putInt(typeNameBytes.length);
 		buf.putInt(namespaceBytes.length);
@@ -360,6 +369,7 @@ public class FeatureDataAdapter extends
 		buf.putInt(visibilityManagementClassNameBytes.length);
 		buf.putInt(attrBytes.length);
 		buf.putInt(axisBytes.length);
+		buf.putInt(encodedTypeBytes.length);
 		buf.put(typeNameBytes);
 		buf.put(namespaceBytes);
 		buf.put(fieldVisibilityAtributeNameBytes);
@@ -367,6 +377,7 @@ public class FeatureDataAdapter extends
 		buf.put(attrBytes);
 		buf.put(axisBytes);
 		buf.put(encodedTypeBytes);
+		buf.put(secondaryIndexBytes);
 
 		return buf.array();
 	}
@@ -387,12 +398,14 @@ public class FeatureDataAdapter extends
 		final byte[] visibilityManagementClassNameBytes = new byte[buf.getInt()];
 		final byte[] attrBytes = new byte[buf.getInt()];
 		final byte[] axisBytes = new byte[buf.getInt()];
+		final byte[] encodedTypeBytes = new byte[buf.getInt()];
 		buf.get(typeNameBytes);
 		buf.get(namespaceBytes);
 		buf.get(fieldVisibilityAtributeNameBytes);
 		buf.get(visibilityManagementClassNameBytes);
 		buf.get(attrBytes);
 		buf.get(axisBytes);
+		buf.get(encodedTypeBytes);
 
 		final String typeName = StringUtils.stringFromBinary(typeNameBytes);
 		String namespace = StringUtils.stringFromBinary(namespaceBytes);
@@ -410,10 +423,10 @@ public class FeatureDataAdapter extends
 					"Cannot instantiate " + visibilityManagementClassName,
 					ex);
 		}
-		// 25 bytes is the 6 four byte length fields and one byte for the
+		// 29 bytes is the 7 four byte length fields and one byte for the
 		// version
-		final byte[] encodedTypeBytes = new byte[bytes.length - axisBytes.length - typeNameBytes.length - namespaceBytes.length - fieldVisibilityAtributeNameBytes.length - visibilityManagementClassNameBytes.length - attrBytes.length - 25];
-		buf.get(encodedTypeBytes);
+		final byte[] secondaryIndexBytes = new byte[bytes.length - axisBytes.length - typeNameBytes.length - namespaceBytes.length - fieldVisibilityAtributeNameBytes.length - visibilityManagementClassNameBytes.length - attrBytes.length - encodedTypeBytes.length - 29];
+		buf.get(secondaryIndexBytes);
 
 		final String encodedType = StringUtils.stringFromBinary(encodedTypeBytes);
 		try {
@@ -455,6 +468,10 @@ public class FeatureDataAdapter extends
 					"Unable to deserialized feature type",
 					e);
 		}
+
+		secondaryIndexManager = PersistenceUtils.fromBinary(
+				secondaryIndexBytes,
+				SecondaryIndexManager.class);
 
 		return null;
 	}
@@ -517,7 +534,7 @@ public class FeatureDataAdapter extends
 	}
 
 	@Override
-	public DataStatisticsVisibilityHandler<SimpleFeature> getVisibilityHandler(
+	public EntryVisibilityHandler<SimpleFeature> getVisibilityHandler(
 			final ByteArrayId statisticsId ) {
 		return statsManager.getVisibilityHandler(statisticsId);
 	}
@@ -600,4 +617,10 @@ public class FeatureDataAdapter extends
 		}
 
 	}
+
+	@Override
+	public List<SecondaryIndex<SimpleFeature>> getSupportedSecondaryIndices() {
+		return secondaryIndexManager.getSupportedSecondaryIndices();
+	}
+
 }

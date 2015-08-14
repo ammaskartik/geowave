@@ -37,11 +37,14 @@ import org.apache.hadoop.io.ObjectWritable;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
 import org.apache.hadoop.mrunit.types.Pair;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.geotools.feature.type.BasicFeatureTypes;
 import org.junit.Before;
 import org.junit.Test;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.slf4j.impl.Log4jLoggerAdapter;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -58,14 +61,14 @@ public class DBScanMapReduceTest
 					0.000001),
 			4326);
 	final Key accumuloKey = null;
+	final NNMapReduce.NNMapper<ClusterItem> nnMapper = new NNMapReduce.NNMapper<ClusterItem>();
+	final NNMapReduce.NNReducer<ClusterItem, GeoWaveInputKey, ObjectWritable, Map<ByteArrayId, Cluster<ClusterItem>>> nnReducer = new DBScanMapReduce.DBScanMapHullReducer();
 
 	@Before
 	public void setUp()
 			throws IOException,
 			AccumuloException,
 			AccumuloSecurityException {
-		final NNMapReduce.NNMapper<ClusterItem> nnMapper = new NNMapReduce.NNMapper<ClusterItem>();
-		final NNMapReduce.NNReducer<ClusterItem, GeoWaveInputKey, ObjectWritable, Map<ByteArrayId, Cluster<ClusterItem>>> nnReducer = new DBScanMapReduce.DBScanMapHullReducer();
 
 		mapDriver = MapDriver.newMapDriver(nnMapper);
 		reduceDriver = ReduceDriver.newReduceDriver(nnReducer);
@@ -96,12 +99,6 @@ public class DBScanMapReduceTest
 						HullParameters.Hull.PROJECTION_CLASS),
 				SimpleFeatureProjection.class,
 				Projection.class);
-
-		reduceDriver.getConfiguration().setInt(
-				GeoWaveConfiguratorBase.enumToConfKey(
-						DBScanMapReduce.class,
-						ClusteringParameters.Clustering.MINIMUM_SIZE),
-				2);
 
 		JobContextAdapterStore.addDataAdapter(
 				mapDriver.getConfiguration(),
@@ -386,6 +383,48 @@ public class DBScanMapReduceTest
 	private double round(
 			double value ) {
 		return (double) Math.round(value * 1000000) / 1000000;
+	}
+
+	@Test
+	public void test8With4()
+			throws IOException,
+			AccumuloException,
+			AccumuloSecurityException {
+
+		final ByteArrayId adapterId = new ByteArrayId(
+				ftype.getTypeName());
+		Random r = new Random(
+				3434);
+		for (int i = 0; i < 8; i++) {
+			final SimpleFeature feature = createTestFeature(
+					"f" + i,
+					new Coordinate(
+							round(30.0 + (r.nextGaussian() * 0.00001)),
+							round(30.0 + (r.nextGaussian() * 0.00001))));
+			mapDriver.addInput(
+					new GeoWaveInputKey(
+							adapterId,
+							new ByteArrayId(
+									feature.getID())),
+					feature);
+		}
+
+		final List<Pair<PartitionDataWritable, AdapterWithObjectWritable>> mapperResults = mapDriver.run();
+
+		final List<Pair<PartitionDataWritable, List<AdapterWithObjectWritable>>> partitions = getReducerDataFromMapperInput(mapperResults);
+
+		reduceDriver.addAll(partitions);
+
+		reduceDriver.getConfiguration().setInt(
+				GeoWaveConfiguratorBase.enumToConfKey(
+						DBScanMapReduce.class,
+						ClusteringParameters.Clustering.MINIMUM_SIZE),
+				4);
+
+		((DBScanMapReduce.DBScanMapHullReducer) nnReducer).setMinOwners(4);
+
+		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
+		assertTrue(reduceResults.size() == 1);
 	}
 
 	@Test

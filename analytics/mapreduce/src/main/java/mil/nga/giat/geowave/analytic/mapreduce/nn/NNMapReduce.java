@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import mil.nga.giat.geowave.analytic.AdapterWithObjectWritable;
 import mil.nga.giat.geowave.analytic.ConfigurationWrapper;
@@ -14,6 +15,7 @@ import mil.nga.giat.geowave.analytic.distance.DistanceFn;
 import mil.nga.giat.geowave.analytic.distance.FeatureGeometryDistanceFn;
 import mil.nga.giat.geowave.analytic.log.LoggingConfigurationWrapper;
 import mil.nga.giat.geowave.analytic.mapreduce.JobContextConfigurationWrapper;
+import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborList.InferType;
 import mil.nga.giat.geowave.analytic.param.CommonParameters;
 import mil.nga.giat.geowave.analytic.param.PartitionParameters;
 import mil.nga.giat.geowave.analytic.partitioner.OrthodromicDistancePartitioner;
@@ -235,6 +237,7 @@ public class NNMapReduce
 			final Map<ByteArrayId, VALUEIN> others = new HashMap<ByteArrayId, VALUEIN>();
 			final PARTITION_SUMMARY summary = createSummary();
 
+			ByteArrayId farthestNeighbor = null;
 			for (final AdapterWithObjectWritable inputValue : values) {
 
 				final VALUEIN unwrappedValue = typeConverter.convert(
@@ -246,6 +249,7 @@ public class NNMapReduce
 					primaries.put(
 							inputValue.getDataId(),
 							unwrappedValue);
+					if (farthestNeighbor == null) farthestNeighbor = inputValue.getDataId();
 				}
 				else {
 					if (!primaries.containsKey(inputValue.getDataId())) {
@@ -256,67 +260,105 @@ public class NNMapReduce
 				}
 			}
 
+			LOGGER.warn("Pre-Processing " + key.toString() + " with primary = " + primaries.size() + " and other = " + others.size());
+			ByteArrayId startingPoint = preprocess(
+					primaries,
+					others,
+					summary,
+					farthestNeighbor);
+
 			LOGGER.warn("Processing " + key.toString() + " with primary = " + primaries.size() + " and other = " + others.size());
 
 			final NeighborIndex<VALUEIN> index = new NeighborIndex<VALUEIN>(
 					this.createNeighborsListFactory(summary));
 
-			final Iterator<Map.Entry<ByteArrayId, VALUEIN>> primaryIt = primaries.entrySet().iterator();
-			while (primaryIt.hasNext()) {
-				final Map.Entry<ByteArrayId, VALUEIN> primary = primaryIt.next();
-				final NeighborList<VALUEIN> primaryList = index.init(primary);
-				for (final Map.Entry<ByteArrayId, VALUEIN> anotherPrimary : primaries.entrySet()) {
-					if (anotherPrimary.getKey().equals(
-							primary.getKey())) {
-						continue;
-					}
-					if (!primaryList.contains(anotherPrimary.getKey())) {
+			double farthestDistance = 0;
+			while (startingPoint != null) {
+				final VALUEIN primary = primaries.remove(startingPoint);
+				final ByteArrayId primaryKey = startingPoint;
+				farthestNeighbor = null;
+				final NeighborList<VALUEIN> primaryList = index.init(
+						primaryKey,
+						primary);
+				Iterator<Entry<ByteArrayId, VALUEIN>> primaryIt = primaries.entrySet().iterator();
+				while (primaryIt.hasNext()) {
+					final Map.Entry<ByteArrayId, VALUEIN> anotherPrimary = primaryIt.next();
+					final ByteArrayId anotherKey = anotherPrimary.getKey();
+					final InferType inferResult = primaryList.infer(
+							anotherKey,
+							anotherPrimary.getValue());
+					if (inferResult == InferType.NONE) {
 						final DistanceProfile<?> distanceProfile = distanceProfileFn.computeProfile(
-								primary.getValue(),
+								primary,
 								anotherPrimary.getValue());
-						if (distanceProfile.getDistance() <= maxDistance) {
+						final double distance = distanceProfile.getDistance();
+						if (distance <= maxDistance) {
 							index.add(
 									distanceProfile,
+									primaryKey,
 									primary,
-									anotherPrimary,
+									anotherKey,
+									anotherPrimary.getValue(),
 									true);
+
+							if (distance > farthestDistance) {
+								farthestDistance = distance;
+								farthestNeighbor = anotherKey;
+							}
 						}
 					}
+					else if (inferResult == InferType.REMOVE) {
+						primaryIt.remove();
+					}
 				}
+
 				context.progress();
-				for (final Map.Entry<ByteArrayId, VALUEIN> anOther : others.entrySet()) {
+				final Iterator<Map.Entry<ByteArrayId, VALUEIN>> othersIt = others.entrySet().iterator();
+				while (othersIt.hasNext()) {
+					final Map.Entry<ByteArrayId, VALUEIN> anOther = othersIt.next();
 					if (anOther.getKey().equals(
-							primary.getKey())) {
+							primaryKey)) {
 						continue;
 					}
-					if (!primaryList.contains(anOther.getKey())) {
+					final InferType inferResult = primaryList.infer(
+							anOther.getKey(),
+							anOther.getValue());
+					if (inferResult == InferType.NONE) {
 						final DistanceProfile<?> distanceProfile = distanceProfileFn.computeProfile(
-								primary.getValue(),
+								primary,
 								anOther.getValue());
 						if (distanceProfile.getDistance() <= maxDistance) {
 							index.add(
 									distanceProfile,
+									primaryKey,
 									primary,
-									anOther,
+									anOther.getKey(),
+									anOther.getValue(),
 									false);
 						}
+					}
+					else if (inferResult == InferType.REMOVE) {
+						othersIt.remove();
 					}
 				}
 				context.progress();
 				processNeighbors(
 						key.partitionData,
-						primary.getKey(),
-						primary.getValue(),
+						primaryKey,
+						primary,
 						primaryList,
 						context,
 						summary);
-
 				// the list is not needed once the primary has been thoroughly
 				// processed.
-				// child classes may use there on collections to retain neighbor
+				// child classes may use their own collections to retain
+				// neighbor
 				// list, if needed.
-				index.empty(primary.getKey());
-				primaryIt.remove();
+				index.empty(primaryKey);
+				if (farthestNeighbor == null && primaries.size() > 0) {
+					farthestNeighbor = primaries.keySet().iterator().next();
+				}
+				startingPoint = farthestNeighbor;
 			}
 
 			processSummary(
@@ -328,6 +370,22 @@ public class NNMapReduce
 		public NeighborListFactory<VALUEIN> createNeighborsListFactory(
 				PARTITION_SUMMARY summary ) {
 			return new DefaultNeighborList.DefaultNeighborListFactory<VALUEIN>();
+		}
+
+		/**
+		 * 
+		 * @param primaries
+		 * @param others
+		 * @param summary
+		 * @param startingPoint
+		 * @return alternate startingPoint
+		 */
+		protected ByteArrayId preprocess(
+				final Map<ByteArrayId, VALUEIN> primaries,
+				final Map<ByteArrayId, VALUEIN> others,
+				PARTITION_SUMMARY summary,
+				ByteArrayId startingPoint ) {
+			return startingPoint;
 		}
 
 		/**

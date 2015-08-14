@@ -16,7 +16,16 @@ public interface Cluster<NNTYPE> extends
 	/*
 	 * Return the cluster to which this cluster is linked
 	 */
-	public Iterator<Cluster<NNTYPE>> getLinkedClusters();
+	public Iterator<ByteArrayId> getLinkedClusters();
 
-	public Iterator<ByteArrayId> clusteredIds();
+	public int currentLinkSetSize();
+
+	public void invalidate();
+
+	public void finish();
+
+	public boolean isFinished();
+
+	public boolean isCompressed();
+
 }

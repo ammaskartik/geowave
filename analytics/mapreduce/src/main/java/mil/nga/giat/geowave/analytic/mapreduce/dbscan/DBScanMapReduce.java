@@ -1,10 +1,13 @@
 package mil.nga.giat.geowave.analytic.mapreduce.dbscan;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,8 +21,10 @@ import mil.nga.giat.geowave.analytic.SimpleFeatureProjection;
 import mil.nga.giat.geowave.analytic.clustering.ClusteringUtils;
 import mil.nga.giat.geowave.analytic.distance.CoordinateCircleDistanceFn;
 import mil.nga.giat.geowave.analytic.mapreduce.JobContextConfigurationWrapper;
+import mil.nga.giat.geowave.analytic.mapreduce.dbscan.ClusterNeighborList.ClusterNeighborListFactory;
 import mil.nga.giat.geowave.analytic.mapreduce.dbscan.ClusterUnionList.ClusterUnionListFactory;
 import mil.nga.giat.geowave.analytic.mapreduce.dbscan.SingleItemClusterList.SingleItemClusterListFactory;
+import mil.nga.giat.geowave.analytic.mapreduce.nn.DistanceProfile;
 import mil.nga.giat.geowave.analytic.mapreduce.nn.DistanceProfileGenerateFn;
 import mil.nga.giat.geowave.analytic.mapreduce.nn.NNMapReduce;
 import mil.nga.giat.geowave.analytic.mapreduce.nn.NNMapReduce.NNReducer;
@@ -43,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * The approach differs from the approach commonly documented (e.g.
@@ -77,36 +83,27 @@ public class DBScanMapReduce
 				final VALUEIN primary,
 				final NeighborList<VALUEIN> neighbors,
 				final Reducer<PartitionDataWritable, AdapterWithObjectWritable, KEYOUT, VALUEOUT>.Context context,
-				final Map<ByteArrayId, Cluster<VALUEIN>> summary )
+				final Map<ByteArrayId, Cluster<VALUEIN>> index )
 				throws IOException,
 				InterruptedException {
-
-			if ((neighbors == null) || (neighbors.size() == 0)) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+						"Finish {} ",
+						primaryId);
+			}
+			if (neighbors == null) {
 				return;
 			}
-			if (neighbors.size() < minOwners) {
-				neighbors.clear();
+			Cluster<VALUEIN> cluster = ((ClusterNeighborList) neighbors).getCluster();
+			if (cluster == null) return;
+			if (cluster.size() < minOwners) {
+				LOGGER.trace(
+						"Invalidate {} ",
+						primaryId);
+				cluster.invalidate();
 				return;
 			}
-
-			final Iterator<Cluster<VALUEIN>> linkedClusterIt = ((Cluster<VALUEIN>) neighbors).getLinkedClusters();
-
-			Cluster<VALUEIN> first = null;
-			while (linkedClusterIt.hasNext()) {
-				final Cluster<VALUEIN> cluster = linkedClusterIt.next();
-				if (first == null) first = cluster;
-				first.merge((Cluster<VALUEIN>) cluster);
-				// transfer these clustered IDs the one merged cluster
-				Iterator<ByteArrayId> ids = cluster.clusteredIds();
-				while (ids.hasNext()) {
-					summary.put(
-							ids.next(),
-							first);
-				}
-				// for gc
-				if (first != cluster) cluster.clear();
-			}
-
+			cluster.finish();
 		}
 
 		@Override
@@ -128,6 +125,11 @@ public class DBScanMapReduce
 					"Minumum owners = {}",
 					minOwners);
 
+		}
+
+		public void setMinOwners(
+				int minOwners ) {
+			this.minOwners = minOwners;
 		}
 	}
 
@@ -168,6 +170,97 @@ public class DBScanMapReduce
 		private final ObjectWritable output = new ObjectWritable();
 		private boolean firstIteration = true;
 
+		/**
+		 * Find the large clusters and condense them down. Find the points that
+		 * are not reachable to viable clusters and remove them.
+		 */
+		@Override
+		protected ByteArrayId preprocess(
+				final Map<ByteArrayId, ClusterItem> primaries,
+				final Map<ByteArrayId, ClusterItem> others,
+				final Map<ByteArrayId, Cluster<ClusterItem>> index,
+				final ByteArrayId startingPoint ) {
+			if (!firstIteration) return startingPoint;
+
+			ByteArrayId resultStartingPoint = startingPoint;
+			ByteArrayId nextPoint = startingPoint;
+			ClusterItem primary = primaries.get(nextPoint);
+			NeighborListFactory<ClusterItem> factory = createNeighborsListFactory(index);
+			Set<ByteArrayId> viablePrimaries = new HashSet<ByteArrayId>();
+			viablePrimaries.addAll(primaries.keySet());
+			List<ByteArrayId> close = new ArrayList<ByteArrayId>();
+			while (primary != null) {
+				viablePrimaries.remove(nextPoint);
+				ClusterNeighborList<ClusterItem> list = (ClusterNeighborList<ClusterItem>) factory.buildNeighborList(
+						nextPoint,
+						primary);
+				ByteArrayId farthestNeighbor = null;
+				double farthestDistance = 0;
+				Iterator<ByteArrayId> primaryIt = viablePrimaries.iterator();
+				while (primaryIt.hasNext()) {
+					final ByteArrayId anotherKey = primaryIt.next();
+					if (anotherKey.equals(nextPoint)) continue;
+					final ClusterItem anotherPrimary = primaries.get(anotherKey);
+					final DistanceProfile<?> distanceProfile = distanceProfileFn.computeProfile(
+							primary,
+							anotherPrimary);
+					final double distance = distanceProfile.getDistance();
+					if (distance <= maxDistance) {
+						list.add(
+								distanceProfile,
+								anotherKey,
+								anotherPrimary);
+						close.add(anotherKey);
+					}
+					else if (distance > farthestDistance) {
+						farthestDistance = distance;
+						farthestNeighbor = anotherKey;
+					}
+				}
+				Iterator<Entry<ByteArrayId, ClusterItem>> otherIt = others.entrySet().iterator();
+				while (otherIt.hasNext()) {
+					final Map.Entry<ByteArrayId, ClusterItem> anotherOther = otherIt.next();
+					final ByteArrayId anotherKey = anotherOther.getKey();
+					final DistanceProfile<?> distanceProfile = distanceProfileFn.computeProfile(
+							primary,
+							anotherOther.getValue());
+					final double distance = distanceProfile.getDistance();
+					if (distance <= maxDistance) {
+						list.add(
+								distanceProfile,
+								anotherKey,
+								anotherOther.getValue());
+						close.add(anotherKey);
+					}
+				}
+				CompressingCluster<ClusterItem, Geometry> cluster = (CompressingCluster<ClusterItem, Geometry>) list.getCluster();
+				if (cluster.size() < this.minOwners) {
+					primaries.remove(nextPoint);
+					if (resultStartingPoint == nextPoint) resultStartingPoint = null;
+				}
+				if (cluster.isCompressed()) {
+					primary.setGeometry(cluster.get());
+					primary.setCount(list.size());
+					for (ByteArrayId subsummed : close) {
+						primaries.remove(subsummed);
+						others.remove(subsummed);
+						viablePrimaries.remove(subsummed);
+					}
+					resultStartingPoint = nextPoint;
+				}
+				close.clear();
+				index.clear();
+				if (farthestNeighbor != null) {
+					nextPoint = farthestNeighbor;
+					primary = primaries.get(farthestNeighbor);
+					resultStartingPoint = (resultStartingPoint == null ? nextPoint : resultStartingPoint);
+				}
+				else
+					primary = null;
+			}
+			return resultStartingPoint;
+		}
+
 		@Override
 		protected void processSummary(
 				final PartitionData partitionData,
@@ -182,6 +275,9 @@ public class DBScanMapReduce
 				final CompressingCluster<ClusterItem, Geometry> cluster = (CompressingCluster<ClusterItem, Geometry>) entry.getValue();
 				if (!processed.contains(cluster)) {
 					processed.add(cluster);
+					if (!(cluster.get() instanceof Polygon)) {
+						processed.add(cluster);
+					}
 					final SimpleFeature newPolygonFeature = AnalyticFeature.createGeometryFeature(
 							outputAdapter.getType(),
 							batchID,
@@ -219,10 +315,13 @@ public class DBScanMapReduce
 
 		public NeighborListFactory<ClusterItem> createNeighborsListFactory(
 				Map<ByteArrayId, Cluster<ClusterItem>> summary ) {
-			return (firstIteration) ? new SingleItemClusterListFactory(
-					new CoordinateCircleDistanceFn(),
-					summary) : new ClusterUnionListFactory(
-					new CoordinateCircleDistanceFn(),
+			return new ClusterNeighborListFactory<ClusterItem>(
+					(firstIteration) ? new SingleItemClusterListFactory(
+							this.minOwners,
+							new CoordinateCircleDistanceFn(),
+							summary) : new ClusterUnionListFactory(
+							new CoordinateCircleDistanceFn(),
+							summary),
 					summary);
 
 		}

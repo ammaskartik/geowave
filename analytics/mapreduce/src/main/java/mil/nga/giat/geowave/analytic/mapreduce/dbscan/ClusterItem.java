@@ -8,8 +8,8 @@ import com.vividsolutions.jts.geom.Geometry;
 public class ClusterItem
 {
 	private final String id;
-	private final Geometry geometry;
-	private final long count;
+	private Geometry geometry;
+	private long count;
 
 	public ClusterItem(
 			final String id,
@@ -58,6 +58,16 @@ public class ClusterItem
 	@Override
 	public String toString() {
 		return "ClusterItem [id=" + id + ", geometry=" + geometry + ", count=" + count + "]";
+	}
+
+	public void setGeometry(
+			Geometry geometry ) {
+		this.geometry = geometry;
+	}
+
+	public void setCount(
+			long count ) {
+		this.count = count;
 	}
 
 }

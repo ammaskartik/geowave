@@ -210,7 +210,12 @@ public class GeometryHullTool
 						batchCoords) : this.concaveHullParkOhMethod(
 						convexHullGeo,
 						batchCoords);
-				if (!concaveHull.isSimple()) {
+				if (fast && !concaveHull.isSimple()) {
+					// long id = System.nanoTime();
+					// ShapefileTool.writeShape("i", new File(id +"iout"), new
+					// Geometry[] {concaveHull});;
+					// ShapefileTool.writeShape("i", new File(id + "xout"), new
+					// Geometry[] {convexHullGeo});;
 					LOGGER.warn(
 							"Produced non simple hull",
 							concaveHull.toText());

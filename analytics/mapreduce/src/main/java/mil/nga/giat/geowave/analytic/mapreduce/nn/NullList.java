@@ -13,15 +13,17 @@ public class NullList<NNTYPE> implements
 
 	@Override
 	public boolean add(
-			final DistanceProfile<?> distanceProfile,
-			final Entry<ByteArrayId, NNTYPE> entry ) {
+			DistanceProfile<?> distanceProfile,
+			ByteArrayId id,
+			NNTYPE value ) {
 		return false;
 	}
 
 	@Override
-	public boolean contains(
-			final ByteArrayId key ) {
-		return false;
+	public mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborList.InferType infer(
+			ByteArrayId id,
+			NNTYPE value ) {
+		return InferType.SKIP;
 	}
 
 	@Override

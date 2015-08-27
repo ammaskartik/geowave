@@ -49,59 +49,6 @@ import com.google.common.collect.Iterators;
 public class GeoWaveRecordReader<T> extends
 		RecordReader<GeoWaveInputKey, T>
 {
-	private static final class RangeIndexPair
-	{
-		private final Range range;
-		private final Index index;
-
-		public RangeIndexPair(
-				final Range range,
-				final Index index ) {
-			this.range = range;
-			this.index = index;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = (prime * result) + ((index == null) ? 0 : index.hashCode());
-			result = (prime * result) + ((range == null) ? 0 : range.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(
-				final Object obj ) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			final RangeIndexPair other = (RangeIndexPair) obj;
-			if (index == null) {
-				if (other.index != null) {
-					return false;
-				}
-			}
-			else if (!index.equals(other.index)) {
-				return false;
-			}
-			if (range == null) {
-				if (other.range != null) {
-					return false;
-				}
-			}
-			else if (!range.equals(other.range)) {
-				return false;
-			}
-			return true;
-		}
-	}
 
 	protected static class ProgressPerRange
 	{
@@ -125,9 +72,9 @@ public class GeoWaveRecordReader<T> extends
 	protected long numKeysRead;
 	protected CloseableIterator<?> iterator;
 	protected Key currentAccumuloKey = null;
-	protected Map<RangeIndexPair, ProgressPerRange> progressPerRange;
+	protected Map<RangeLocationPair, ProgressPerRange> progressPerRange;
 	protected GeoWaveInputKey currentGeoWaveKey = null;
-	protected RangeIndexPair currentGeoWaveRangeIndexPair = null;
+	protected RangeLocationPair currentGeoWaveRangeIndexPair = null;
 	protected T currentValue = null;
 	protected GeoWaveInputSplit split;
 
@@ -153,26 +100,28 @@ public class GeoWaveRecordReader<T> extends
 			final String[] additionalAuthorizations = GeoWaveInputFormat.getAuthorizations(attempt);
 
 			numKeysRead = 0;
-			final Map<RangeIndexPair, CloseableIterator<?>> iteratorsPerRange = new LinkedHashMap<RangeIndexPair, CloseableIterator<?>>();
+			final Map<RangeLocationPair, CloseableIterator<?>> iteratorsPerRange = new LinkedHashMap<RangeLocationPair, CloseableIterator<?>>();
 
 			final Set<Index> indices = split.getIndices();
+			BigInteger sum = BigInteger.ZERO;
+
+			final Map<RangeLocationPair, BigInteger> incrementalRangeSums = new LinkedHashMap<RangeLocationPair, BigInteger>();
+
 			for (final Index i : indices) {
-				final List<Range> ranges = split.getRanges(i);
+				final List<RangeLocationPair> ranges = split.getRanges(i);
 				List<QueryFilter> queryFilters = null;
 				if (query != null) {
 					queryFilters = query.createFilters(i.getIndexModel());
 				}
-				for (final Range r : ranges) {
+				for (final RangeLocationPair r : ranges) {
 					iteratorsPerRange.put(
-							new RangeIndexPair(
-									r,
-									i),
+							r,
 							new InputFormatAccumuloRangeQuery(
 									GeoWaveInputFormat.getAdapterIds(
 											attempt,
 											adapterStore),
 									i,
-									r,
+									r.getRange(),
 									queryFilters,
 									isOutputWritable,
 									queryOptions,
@@ -181,37 +130,20 @@ public class GeoWaveRecordReader<T> extends
 									adapterStore,
 									null,
 									true));
-
+					incrementalRangeSums.put(
+							r,
+							sum);
+					sum = sum.add(BigInteger.valueOf((long) r.getCardinality()));
 				}
 			}
-			// calculate max cardinality
-			final Collection<RangeIndexPair> pairs = iteratorsPerRange.keySet();
-			int maxCardinality = 1;
-			for (final RangeIndexPair p : pairs) {
-				maxCardinality = Math.max(
-						maxCardinality,
-						GeoWaveInputFormat.getMaxCardinalityFromRange(p.range));
-			}
-			// calculate big integer sum of all ranges at this cardinality, and
-			// keep track of the incremental sum at each range
-			BigInteger sum = BigInteger.ZERO;
-			final Map<RangeIndexPair, BigInteger> incrementalRangeSums = new LinkedHashMap<RangeIndexPair, BigInteger>();
-			for (final RangeIndexPair p : pairs) {
-				incrementalRangeSums.put(
-						p,
-						sum);
-				final BigInteger range = GeoWaveInputFormat.getRange(
-						p.range,
-						maxCardinality);
-				sum = sum.add(range);
-			}
+
 			// finally we can compute percent progress
-			progressPerRange = new LinkedHashMap<RangeIndexPair, ProgressPerRange>();
-			RangeIndexPair prevRangeIndex = null;
+			progressPerRange = new LinkedHashMap<RangeLocationPair, ProgressPerRange>();
+			RangeLocationPair prevRangeIndex = null;
 			float prevProgress = 0f;
 			final BigDecimal decimalSum = new BigDecimal(
 					sum);
-			for (final Entry<RangeIndexPair, BigInteger> entry : incrementalRangeSums.entrySet()) {
+			for (final Entry<RangeLocationPair, BigInteger> entry : incrementalRangeSums.entrySet()) {
 				final BigInteger value = entry.getValue();
 				final float progress = (float) new BigDecimal(
 						value).divide(
@@ -249,7 +181,7 @@ public class GeoWaveRecordReader<T> extends
 
 								@Override
 								public void setRange(
-										final RangeIndexPair indexPair ) {
+										final RangeLocationPair indexPair ) {
 									currentGeoWaveRangeIndexPair = indexPair;
 								}
 							}));
@@ -312,11 +244,11 @@ public class GeoWaveRecordReader<T> extends
 		final ProgressPerRange progress = progressPerRange.get(currentGeoWaveRangeIndexPair);
 		if (progress == null) {
 			return getProgressForRange(
-					currentGeoWaveRangeIndexPair.range,
+					currentGeoWaveRangeIndexPair.getRange(),
 					currentAccumuloKey);
 		}
 		return getOverallProgress(
-				currentGeoWaveRangeIndexPair.range,
+				currentGeoWaveRangeIndexPair.getRange(),
 				currentAccumuloKey,
 				progress);
 	}
@@ -413,7 +345,7 @@ public class GeoWaveRecordReader<T> extends
 	private static interface NextRangeCallback
 	{
 		public void setRange(
-				RangeIndexPair indexPair );
+				RangeLocationPair indexPair );
 	}
 
 	/**
@@ -421,7 +353,7 @@ public class GeoWaveRecordReader<T> extends
 	 * between iterators
 	 */
 	private static Iterator<Object> concatenateWithCallback(
-			final Iterator<Entry<RangeIndexPair, CloseableIterator<?>>> inputs,
+			final Iterator<Entry<RangeLocationPair, CloseableIterator<?>>> inputs,
 			final NextRangeCallback nextRangeCallback ) {
 		Preconditions.checkNotNull(inputs);
 		return new Iterator<Object>() {
@@ -433,7 +365,7 @@ public class GeoWaveRecordReader<T> extends
 				boolean currentHasNext;
 				while (!(currentHasNext = Preconditions.checkNotNull(
 						currentIterator).hasNext()) && inputs.hasNext()) {
-					final Entry<RangeIndexPair, CloseableIterator<?>> entry = inputs.next();
+					final Entry<RangeLocationPair, CloseableIterator<?>> entry = inputs.next();
 					nextRangeCallback.setRange(entry.getKey());
 					currentIterator = entry.getValue();
 				}

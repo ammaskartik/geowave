@@ -1,15 +1,15 @@
 package mil.nga.giat.geowave.analytic.mapreduce.dbscan;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import mil.nga.giat.geowave.analytic.GeometryHullTool;
-import mil.nga.giat.geowave.analytic.distance.DistanceFn;
 import mil.nga.giat.geowave.analytic.mapreduce.dbscan.ClusterItemDistanceFn.ClusterProfileContext;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.DistanceProfile;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborList;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborListFactory;
+import mil.nga.giat.geowave.analytic.nn.DistanceProfile;
+import mil.nga.giat.geowave.analytic.nn.NeighborList;
+import mil.nga.giat.geowave.analytic.nn.NeighborListFactory;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -25,51 +25,45 @@ import com.vividsolutions.jts.geom.Point;
  */
 public class SingleItemClusterList extends
 		DBScanClusterList implements
-		CompressingCluster<ClusterItem, Geometry>
+		Cluster
 {
 
-	private final boolean initializedAsPoint;
 	private boolean compressed = false;
-	private final Set<Coordinate> clusterPoints = new HashSet<Coordinate>();
+	private Set<Coordinate> clusterPoints = null;
 
 	public SingleItemClusterList(
-			final int mergeSize,
-			final GeometryHullTool connectGeometryTool,
 			final ByteArrayId centerId,
 			final ClusterItem center,
 			final NeighborListFactory<ClusterItem> factory,
-			final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
+			final Map<ByteArrayId, Cluster> index ) {
 		super(
-				mergeSize,
-				connectGeometryTool,
+				center.getGeometry() instanceof Point || center.isCompressed() ? center.getGeometry() : null,
+				(int) center.getCount(),
 				centerId,
 				index);
 
 		final Geometry clusterGeo = center.getGeometry();
 
-		super.clusterGeo = clusterGeo.getCentroid();
+		compressed = center.isCompressed();
 
-		initializedAsPoint = clusterGeo instanceof Point;
-
-		if (initializedAsPoint) {
-			clusterPoints.add(clusterGeo.getCoordinate());
+		if (compressed) {
+			getClusterPoints(
+					true).add(
+					clusterGeo.getCentroid().getCoordinate());
 		}
 	}
 
-	@Override
-	public int size() {
-		return super.size() + this.clusterPoints.size();
-	}
+	protected Set<Coordinate> getClusterPoints(
+			boolean allowUpdates ) {
+		if (clusterPoints == null || clusterPoints == Collections.<Coordinate> emptySet()) clusterPoints = allowUpdates ? new HashSet<Coordinate>() : Collections.<Coordinate> emptySet();
+		return clusterPoints;
 
-	@Override
-	public void invalidate() {
-		super.invalidate();
 	}
 
 	@Override
 	public void clear() {
 		super.clear();
-		clusterPoints.clear();
+		clusterPoints = null;
 	}
 
 	@Override
@@ -79,65 +73,55 @@ public class SingleItemClusterList extends
 			final DistanceProfile<?> distanceProfile ) {
 		final ClusterProfileContext context = (ClusterProfileContext) distanceProfile.getContext();
 
-		// If initialized from a point, then any hull created during compression
-		// contains that point.
-		// Adding that point is not needed. Points from coordinates[0] (center)
-		// are only added if they are part of more complex geometry.
-		if (!initializedAsPoint) {
-			final Coordinate centerCoordinate = context.getItem1() == newInstance ? context.getPoint2() : context.getPoint1();
-			if (!clusterPoints.contains(centerCoordinate) && (!this.clusterGeo.covers(clusterGeo.getFactory().createPoint(
-					centerCoordinate)))) {
-				clusterPoints.add(centerCoordinate);
-			}
-		}
-		final Coordinate newInstanceCoordinate = context.getItem2() == newInstance ? context.getPoint2() : context.getPoint1();
-		// optimization to avoid creating a point if a representative one
-		// already exists. Also, do not add if the point is already accounted
-		// for
-		if (newInstance.getGeometry() instanceof Point) {
-			if (!clusterGeo.covers(newInstance.getGeometry())) {
-				clusterPoints.add(newInstanceCoordinate);
-			}
-		}
-		else {
-			// need to create point since the provided coordinate is most likely
-			// some point on a segment rather than a vertex
-			if (!clusterGeo.covers(clusterGeo.getFactory().createPoint(
-					newInstanceCoordinate))) {
-				clusterPoints.add(newInstanceCoordinate);
-			}
+		boolean checkForCompress = false;
+
+		final Coordinate centerCoordinate = context.getItem1() == newInstance ? context.getPoint2() : context.getPoint1();
+
+		Geometry thisGeo = getGeometry();
+		// only need to cluster this new point if it is likely top be an
+		// inter-segment point
+		if (thisGeo == null || !(thisGeo instanceof Point)) {
+			checkForCompress = getClusterPoints(
+					true).add(
+					centerCoordinate);
 		}
 
-		checkForCompression();
+		// Closest distance points are only added if they are on a segment of a
+		// complex geometry.
+		if (!(newInstance.getGeometry() instanceof Point)) {
+			final Coordinate newInstanceCoordinate = context.getItem2() == newInstance ? context.getPoint2() : context.getPoint1();
+			checkForCompress = getClusterPoints(
+					true).add(
+					newInstanceCoordinate);
+		}
+
+		if (checkForCompress) checkForCompression();
 		return 1;
 	}
 
 	@Override
 	public void merge(
-			Cluster<ClusterItem> cluster ) {
+			Cluster cluster ) {
 		if (this == cluster) return;
-		super.merge(cluster);
+
 		final SingleItemClusterList singleItemCluster = ((SingleItemClusterList) cluster);
-		if (this.compressed || singleItemCluster.compressed) {
-			if (!this.compressed) {
-				this.clusterGeo = singleItemCluster.clusterGeo;
-				clusterPoints.addAll(singleItemCluster.clusterPoints);
-			}
-			else {
-				if (singleItemCluster.compressed) {
-					union(singleItemCluster.clusterGeo);
-				}
-				for (Coordinate newInstanceCoordinate : singleItemCluster.clusterPoints) {
-					if (!clusterGeo.covers(clusterGeo.getFactory().createPoint(
-							newInstanceCoordinate))) {
-						clusterPoints.add(newInstanceCoordinate);
-					}
-				}
-			}
+
+		super.merge(cluster);
+
+		if (singleItemCluster.clusterGeo != null) {
+			getClusterPoints(
+					true).addAll(
+					Arrays.asList(singleItemCluster.clusterGeo.getCoordinates()));
 		}
-		else {
-			clusterPoints.addAll(singleItemCluster.clusterPoints);
+
+		Set<Coordinate> otherPoints = singleItemCluster.getClusterPoints(false);
+		if (otherPoints.size() > 0) {
+			// handle any remaining points
+			getClusterPoints(
+					true).addAll(
+					otherPoints);
 		}
+
 		checkForCompression();
 	}
 
@@ -145,48 +129,53 @@ public class SingleItemClusterList extends
 		return compressed;
 	}
 
+	public void finish() {
+		super.finish();
+		compressAndUpdate();
+	}
+
 	private void checkForCompression() {
-		if (clusterPoints.size() > 200) {
-			clusterGeo = compress();
-			incrementItemCount(clusterPoints.size());
-			clusterPoints.clear();
-			compressed = true;
+		if (getClusterPoints(
+				false).size() > 50) {
+			compressAndUpdate();
 		}
 	}
 
-	@Override
+	private void compressAndUpdate() {
+		clusterGeo = compress();
+		clusterPoints = null;
+		compressed = true;
+	}
+
 	protected Geometry compress() {
-		return super.connectGeometryTool.createHullFromGeometry(
-				clusterGeo,
-				clusterPoints,
-				true);
+		if (getClusterPoints(
+				false).size() > 0) {
+			return DBScanClusterList.getHullTool().createHullFromGeometry(
+					clusterGeo,
+					clusterPoints,
+					true);
+		}
+		return clusterGeo;
+
 	}
 
 	public static class SingleItemClusterListFactory implements
 			NeighborListFactory<ClusterItem>
 	{
-		private final Map<ByteArrayId, Cluster<ClusterItem>> index;
-		protected final GeometryHullTool connectGeometryTool = new GeometryHullTool();
-		final int mergeSize;
+		private final Map<ByteArrayId, Cluster> index;
 
 		public SingleItemClusterListFactory(
-				final int mergeSize,
-				final DistanceFn<Coordinate> distanceFnForCoordinate,
-				final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
+				final Map<ByteArrayId, Cluster> index ) {
 			super();
-			this.mergeSize = mergeSize;
-			connectGeometryTool.setDistanceFnForCoordinate(distanceFnForCoordinate);
 			this.index = index;
 		}
 
 		public NeighborList<ClusterItem> buildNeighborList(
 				final ByteArrayId centerId,
 				final ClusterItem center ) {
-			Cluster<ClusterItem> list = index.get(centerId);
+			Cluster list = index.get(centerId);
 			if (list == null) {
 				list = new SingleItemClusterList(
-						mergeSize,
-						connectGeometryTool,
 						centerId,
 						center,
 						this,

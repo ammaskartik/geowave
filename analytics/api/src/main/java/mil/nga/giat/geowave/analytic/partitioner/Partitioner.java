@@ -187,6 +187,11 @@ public interface Partitioner<T>
 			dOutput.writeBoolean(isPrimary);
 
 		}
+
+		public void setPrimary(
+				boolean isPrimary ) {
+			this.isPrimary = isPrimary;
+		}
 	}
 
 }

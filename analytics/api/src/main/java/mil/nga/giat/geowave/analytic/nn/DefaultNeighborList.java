@@ -1,4 +1,4 @@
-package mil.nga.giat.geowave.analytic.mapreduce.nn;
+package mil.nga.giat.geowave.analytic.nn;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -73,11 +73,6 @@ public class DefaultNeighborList<NNTYPE> implements
 	public NNTYPE get(
 			final ByteArrayId key ) {
 		return list.get(key);
-	}
-
-	@Override
-	public void init() {
-
 	}
 
 }

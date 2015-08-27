@@ -62,7 +62,7 @@ public class DBScanMapReduceTest
 			4326);
 	final Key accumuloKey = null;
 	final NNMapReduce.NNMapper<ClusterItem> nnMapper = new NNMapReduce.NNMapper<ClusterItem>();
-	final NNMapReduce.NNReducer<ClusterItem, GeoWaveInputKey, ObjectWritable, Map<ByteArrayId, Cluster<ClusterItem>>> nnReducer = new DBScanMapReduce.DBScanMapHullReducer();
+	final NNMapReduce.NNReducer<ClusterItem, GeoWaveInputKey, ObjectWritable, Map<ByteArrayId, Cluster>> nnReducer = new DBScanMapReduce.DBScanMapHullReducer();
 
 	@Before
 	public void setUp()
@@ -317,6 +317,12 @@ public class DBScanMapReduceTest
 
 		reduceDriver.addAll(partitions);
 
+		reduceDriver.getConfiguration().setInt(
+				GeoWaveConfiguratorBase.enumToConfKey(
+						NNMapReduce.class,
+						ClusteringParameters.Clustering.MINIMUM_SIZE),
+				2);
+
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
 
 		assertEquals(
@@ -417,14 +423,14 @@ public class DBScanMapReduceTest
 
 		reduceDriver.getConfiguration().setInt(
 				GeoWaveConfiguratorBase.enumToConfKey(
-						DBScanMapReduce.class,
+						NNMapReduce.class,
 						ClusteringParameters.Clustering.MINIMUM_SIZE),
 				4);
 
-		((DBScanMapReduce.DBScanMapHullReducer) nnReducer).setMinOwners(4);
-
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
-		assertTrue(reduceResults.size() == 1);
+		assertEquals(
+				1,
+				reduceResults.size());
 	}
 
 	@Test
@@ -437,7 +443,7 @@ public class DBScanMapReduceTest
 				ftype.getTypeName());
 		Random r = new Random(
 				3434);
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 50000; i++) {
 			final SimpleFeature feature = createTestFeature(
 					"f" + i,
 					new Coordinate(
@@ -456,6 +462,12 @@ public class DBScanMapReduceTest
 		final List<Pair<PartitionDataWritable, List<AdapterWithObjectWritable>>> partitions = getReducerDataFromMapperInput(mapperResults);
 
 		reduceDriver.addAll(partitions);
+
+		reduceDriver.getConfiguration().setInt(
+				GeoWaveConfiguratorBase.enumToConfKey(
+						NNMapReduce.class,
+						ClusteringParameters.Clustering.MINIMUM_SIZE),
+				10);
 
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
 		assertTrue(reduceResults.size() > 0);

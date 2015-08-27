@@ -43,7 +43,7 @@ public class DBScanJobRunner extends
 
 	private static final String[] CodecsRank = new String[] {
 		"BZip2",
-		//"Gzip",
+		// "Gzip",
 		"Lz4",
 		"Snappy",
 		"Lzo",

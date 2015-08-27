@@ -221,6 +221,10 @@ public class DBScanMapReduce
 				while (otherIt.hasNext()) {
 					final Map.Entry<ByteArrayId, ClusterItem> anotherOther = otherIt.next();
 					final ByteArrayId anotherKey = anotherOther.getKey();
+					if (anotherKey.equals(nextPoint)) {
+						otherIt.remove();
+						continue;
+					}
 					final DistanceProfile<?> distanceProfile = distanceProfileFn.computeProfile(
 							primary,
 							anotherOther.getValue());
@@ -236,6 +240,7 @@ public class DBScanMapReduce
 				CompressingCluster<ClusterItem, Geometry> cluster = (CompressingCluster<ClusterItem, Geometry>) list.getCluster();
 				if (cluster.size() < this.minOwners) {
 					primaries.remove(nextPoint);
+					others.remove(nextPoint);
 					if (resultStartingPoint == nextPoint) resultStartingPoint = null;
 				}
 				if (cluster.isCompressed()) {

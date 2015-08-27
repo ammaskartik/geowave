@@ -318,6 +318,7 @@ public class NNMapReduce
 					final Map.Entry<ByteArrayId, VALUEIN> anOther = othersIt.next();
 					if (anOther.getKey().equals(
 							primaryKey)) {
+						othersIt.remove();
 						continue;
 					}
 					final InferType inferResult = primaryList.infer(

@@ -176,6 +176,7 @@ public class DBScanMapReduce
 		 */
 		@Override
 		protected ByteArrayId preprocess(
+				final Reducer<PartitionDataWritable, AdapterWithObjectWritable, GeoWaveInputKey, ObjectWritable>.Context context,
 				final Map<ByteArrayId, ClusterItem> primaries,
 				final Map<ByteArrayId, ClusterItem> others,
 				final Map<ByteArrayId, Cluster<ClusterItem>> index,
@@ -255,6 +256,7 @@ public class DBScanMapReduce
 				}
 				close.clear();
 				index.clear();
+				context.progress();
 				if (farthestNeighbor != null) {
 					nextPoint = farthestNeighbor;
 					primary = primaries.get(farthestNeighbor);

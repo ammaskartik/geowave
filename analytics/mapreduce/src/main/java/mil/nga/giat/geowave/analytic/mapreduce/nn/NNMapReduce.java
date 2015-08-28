@@ -262,6 +262,7 @@ public class NNMapReduce
 
 			LOGGER.warn("Pre-Processing " + key.toString() + " with primary = " + primaries.size() + " and other = " + others.size());
 			ByteArrayId startingPoint = preprocess(
+					context,
 					primaries,
 					others,
 					summary,
@@ -382,10 +383,11 @@ public class NNMapReduce
 		 * @return alternate startingPoint
 		 */
 		protected ByteArrayId preprocess(
+				final Reducer<PartitionDataWritable, AdapterWithObjectWritable, KEYOUT, VALUEOUT>.Context context,
 				final Map<ByteArrayId, VALUEIN> primaries,
 				final Map<ByteArrayId, VALUEIN> others,
-				PARTITION_SUMMARY summary,
-				ByteArrayId startingPoint ) {
+				final PARTITION_SUMMARY summary,
+				final ByteArrayId startingPoint ) {
 			return startingPoint;
 		}
 

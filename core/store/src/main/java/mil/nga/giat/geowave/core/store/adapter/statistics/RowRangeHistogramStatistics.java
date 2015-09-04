@@ -77,7 +77,11 @@ public class RowRangeHistogramStatistics<T> extends
 	public double cardinality(
 			byte[] start,
 			byte[] end ) {
-		return this.histogram.sum(ByteUtils.toDouble(end)) - this.histogram.sum(ByteUtils.toDouble(start));
+		return this.histogram.sum(
+				ByteUtils.toDouble(end),
+				true) - this.histogram.sum(
+				ByteUtils.toDouble(start),
+				false);
 	}
 
 	public byte[][] quantile(
@@ -100,11 +104,6 @@ public class RowRangeHistogramStatistics<T> extends
 		return cdf(ByteUtils.toDouble(id));
 	}
 
-	private long sum(
-			double val ) {
-		return (long) Math.ceil(histogram.sum(val));
-	}
-
 	private double cdf(
 			double val ) {
 		return histogram.cdf(val);
@@ -122,7 +121,9 @@ public class RowRangeHistogramStatistics<T> extends
 	}
 
 	public long getLeftMostCount() {
-		return (long) Math.ceil(histogram.sum(histogram.getMinValue()));
+		return (long) Math.ceil(histogram.sum(
+				histogram.getMinValue(),
+				true));
 	}
 
 	public long totalSampleSize() {

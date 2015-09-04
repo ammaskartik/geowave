@@ -289,7 +289,7 @@ public class GeoWaveInputFormat<T> extends
 			final String tableId )
 			throws TableNotFoundException {
 		TabletLocator tabletLocator;
-		// @formatter:off
+// @formatter:off
 		/*if[ACCUMULO_1.5.2]
 		tabletLocator = TabletLocator.getInstance(
 				instance,
@@ -304,7 +304,7 @@ public class GeoWaveInputFormat<T> extends
 				new Text(
 						tableId));
 		/* end[ACCUMULO_1.5.2] */
-		// @formatter:on
+// @formatter:on
 		return tabletLocator;
 	}
 
@@ -319,25 +319,25 @@ public class GeoWaveInputFormat<T> extends
 			AccumuloSecurityException,
 			TableNotFoundException,
 			IOException {
-		// @formatter:off
-				/*if[ACCUMULO_1.5.2]
-				final ByteArrayOutputStream backingByteArray = new ByteArrayOutputStream();
-				final DataOutputStream output = new DataOutputStream(
-						backingByteArray);
-				new PasswordToken(
-						password).write(output);
-				output.close();
-				final ByteBuffer buffer = ByteBuffer.wrap(backingByteArray.toByteArray());
-				final TCredentials credentials = new TCredentials(
-						userName,
-						PasswordToken.class.getCanonicalName(),
-						buffer,
-						instanceId);
-				return tabletLocator.binRanges(
-						rangeList,
-						tserverBinnedRanges,
-						credentials).isEmpty();
-		  		else[ACCUMULO_1.5.2]*/
+// @formatter:off
+		/*if[ACCUMULO_1.5.2]
+		final ByteArrayOutputStream backingByteArray = new ByteArrayOutputStream();
+		final DataOutputStream output = new DataOutputStream(
+				backingByteArray);
+		new PasswordToken(
+				password).write(output);
+		output.close();
+		final ByteBuffer buffer = ByteBuffer.wrap(backingByteArray.toByteArray());
+		final TCredentials credentials = new TCredentials(
+				userName,
+				PasswordToken.class.getCanonicalName(),
+				buffer,
+				instanceId);
+		return tabletLocator.binRanges(
+				rangeList,
+				tserverBinnedRanges,
+				credentials).isEmpty();
+  		else[ACCUMULO_1.5.2]*/
 		return tabletLocator.binRanges(
 				new Credentials(
 						userName,
@@ -346,7 +346,7 @@ public class GeoWaveInputFormat<T> extends
 				rangeList,
 				tserverBinnedRanges).isEmpty();
 		/* end[ACCUMULO_1.5.2] */
-		// @formatter:on
+// @formatter:on
 	}
 
 	protected static String getInstanceName(
@@ -497,14 +497,14 @@ public class GeoWaveInputFormat<T> extends
 		return new Range(
 				new Key(
 						new Text(
-								this.getKeyFromBigInteger(
+								getKeyFromBigInteger(
 										new BigInteger(
 												stats.getMin()).subtract(ONE),
 										cardinality))),
 				true,
 				new Key(
 						new Text(
-								this.getKeyFromBigInteger(
+								getKeyFromBigInteger(
 										new BigInteger(
 												stats.getMax()).add(ONE),
 										cardinality))),
@@ -527,7 +527,6 @@ public class GeoWaveInputFormat<T> extends
 			if ((query != null) && !query.isSupported(index)) {
 				continue;
 			}
-
 			Range fullrange;
 			try {
 				fullrange = getRangeMax(
@@ -568,6 +567,7 @@ public class GeoWaveInputFormat<T> extends
 				}
 			}
 			else {
+
 				ranges = new TreeSet<Range>();
 				ranges.add(fullrange);
 				if (LOGGER.isTraceEnabled()) LOGGER.trace("Protected range: " + fullrange);
@@ -654,16 +654,14 @@ public class GeoWaveInputFormat<T> extends
 										statsCache,
 										context),
 								clippedRange);
-						// Use cardinality as a range check. The lower bound is
-						// guaranteed.
-						// Alternative (which is not accurate):
-						// if (!(fullrange.beforeStartKey( range.getEndKey()) ||
-						// fullrange.afterEndKey(range.getStartKey()))) {
-						if (cardinality > 0) {
+						if (!(fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
 							rangeList.add(new RangeLocationPair(
 									clippedRange,
 									location,
-									cardinality));
+									cardinality < 1 ? 1 : cardinality));
+						}
+						else {
+							LOGGER.info("Query split outside of range");
 						}
 						if (LOGGER.isTraceEnabled()) LOGGER.warn("Clipped range: " + rangeList.get(
 								rangeList.size() - 1).getRange());
@@ -751,7 +749,7 @@ public class GeoWaveInputFormat<T> extends
 				final double cdfEnd = stats.cdf(end);
 				final byte[] expectedEnd = stats.quantile(cdfStart + ((cdfEnd - cdfStart) * fraction));
 
-				final int maxCardinality = Math.min(
+				final int maxCardinality = Math.max(
 						start.length,
 						end.length);
 
@@ -973,16 +971,14 @@ public class GeoWaveInputFormat<T> extends
 			final int numBytes ) {
 		final byte[] valueBytes = value.toByteArray();
 		final byte[] bytes = new byte[numBytes];
-		for (int i = 0; i < numBytes; i++) {
-			// start from the right
-			if (i < valueBytes.length) {
-				bytes[bytes.length - i - 1] = valueBytes[valueBytes.length - i - 1];
-			}
-			else {
-				// prepend anything outside of the BigInteger value with 0
-				bytes[bytes.length - i - 1] = 0;
-			}
-		}
+		System.arraycopy(
+				valueBytes,
+				0,
+				bytes,
+				0,
+				Math.min(
+						valueBytes.length,
+						bytes.length));
 		return bytes;
 	}
 

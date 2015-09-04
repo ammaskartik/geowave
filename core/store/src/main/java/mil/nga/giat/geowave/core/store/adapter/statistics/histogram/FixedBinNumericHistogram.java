@@ -79,7 +79,9 @@ public class FixedBinNumericHistogram implements
 
 	public double cdf(
 			final double val ) {
-		return sum(val) / totalCount;
+		return sum(
+				val,
+				false) / totalCount;
 	}
 
 	/**
@@ -89,7 +91,8 @@ public class FixedBinNumericHistogram implements
 	 * @return the number of estimated points
 	 */
 	public double sum(
-			final double val ) {
+			final double val,
+			boolean inclusive ) {
 		if (val < this.minValue) {
 			return 0.0;
 		}
@@ -111,7 +114,7 @@ public class FixedBinNumericHistogram implements
 				1.0,
 				(val - ((perBinSize * (bin)) + minValue)) / perBinSize);
 		c += (percentageOfLastBin * count[bin]);
-		return c;
+		return c > 0 ? c : (inclusive ? 1.0 : c);
 
 	}
 
@@ -156,7 +159,9 @@ public class FixedBinNumericHistogram implements
 		start += increment;
 		long last = 0;
 		for (int bin = 0; bin < bins; bin++, start += increment) {
-			final long aggSum = (long) Math.ceil(sum(start));
+			final long aggSum = (long) Math.ceil(sum(
+					start,
+					false));
 			result[bin] = aggSum - last;
 			last = aggSum;
 		}

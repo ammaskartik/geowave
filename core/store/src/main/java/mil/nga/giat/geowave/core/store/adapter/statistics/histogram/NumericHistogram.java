@@ -58,7 +58,8 @@ public interface NumericHistogram
 	 * @return the number of estimated points
 	 */
 	public double sum(
-			final double val );
+			final double val,
+			boolean inclusive );
 
 	public double cdf(
 			final double val );

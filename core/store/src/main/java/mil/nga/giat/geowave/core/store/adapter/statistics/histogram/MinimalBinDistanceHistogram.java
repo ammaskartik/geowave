@@ -330,7 +330,8 @@ public class MinimalBinDistanceHistogram implements
 	 * @return the number of estimated points
 	 */
 	public double sum(
-			final double val ) {
+			final double val,
+			final boolean inclusive ) {
 		if (bins.isEmpty()) {
 			return 0.0;
 		}
@@ -372,12 +373,14 @@ public class MinimalBinDistanceHistogram implements
 		final double mb = lowerCount + (((upperCount - lowerCount) / (upperBoundary - lowerBoundary)) * (val - lowerBoundary));
 		final double s = (((lowerCount + mb) / 2.0) * (val - lowerBoundary)) / (upperBoundary - lowerBoundary);
 		final double r = foundCount + s + (lowerCount / 2.0);
-		return r > 1.0 ? r : 1.0;
+		return r > 1.0 ? r : (inclusive ? 1.0 : r);
 	}
 
 	public double cdf(
 			final double val ) {
-		return sum(val) / totalCount;
+		return sum(
+				val,
+				false) / totalCount;
 	}
 
 	public long[] count(
@@ -389,7 +392,9 @@ public class MinimalBinDistanceHistogram implements
 		start += increment;
 		long last = 0;
 		for (int bin = 0; bin < bins; bin++, start += increment) {
-			final long aggSum = (long) Math.ceil(sum(start));
+			final long aggSum = (long) Math.ceil(sum(
+					start,
+					false));
 			result[bin] = aggSum - last;
 			last = aggSum;
 		}

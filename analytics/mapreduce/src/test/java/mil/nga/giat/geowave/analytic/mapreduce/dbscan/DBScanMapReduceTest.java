@@ -316,6 +316,12 @@ public class DBScanMapReduceTest
 		final List<Pair<PartitionDataWritable, List<AdapterWithObjectWritable>>> partitions = getReducerDataFromMapperInput(mapperResults);
 
 		reduceDriver.addAll(partitions);
+		
+		reduceDriver.getConfiguration().setInt(
+				GeoWaveConfiguratorBase.enumToConfKey(
+						NNMapReduce.class,
+						ClusteringParameters.Clustering.MINIMUM_SIZE),
+				2);
 
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
 
@@ -417,11 +423,10 @@ public class DBScanMapReduceTest
 
 		reduceDriver.getConfiguration().setInt(
 				GeoWaveConfiguratorBase.enumToConfKey(
-						DBScanMapReduce.class,
+						NNMapReduce.class,
 						ClusteringParameters.Clustering.MINIMUM_SIZE),
 				4);
 
-		((DBScanMapReduce.DBScanMapHullReducer) nnReducer).setMinOwners(4);
 
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
 		assertTrue(reduceResults.size() == 1);
@@ -437,7 +442,7 @@ public class DBScanMapReduceTest
 				ftype.getTypeName());
 		Random r = new Random(
 				3434);
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 50000; i++) {
 			final SimpleFeature feature = createTestFeature(
 					"f" + i,
 					new Coordinate(
@@ -456,6 +461,12 @@ public class DBScanMapReduceTest
 		final List<Pair<PartitionDataWritable, List<AdapterWithObjectWritable>>> partitions = getReducerDataFromMapperInput(mapperResults);
 
 		reduceDriver.addAll(partitions);
+		
+		reduceDriver.getConfiguration().setInt(
+				GeoWaveConfiguratorBase.enumToConfKey(
+						NNMapReduce.class,
+						ClusteringParameters.Clustering.MINIMUM_SIZE),
+				10);
 
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
 		assertTrue(reduceResults.size() > 0);

@@ -1,4 +1,4 @@
-package mil.nga.giat.geowave.analytic.mapreduce.nn;
+package mil.nga.giat.geowave.analytic.nn;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -20,7 +20,7 @@ public class NullList<NNTYPE> implements
 	}
 
 	@Override
-	public mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborList.InferType infer(
+	public InferType infer(
 			ByteArrayId id,
 			NNTYPE value ) {
 		return InferType.SKIP;
@@ -46,9 +46,5 @@ public class NullList<NNTYPE> implements
 		return true;
 	}
 
-	@Override
-	public void init() {
-
-	}
 
 }

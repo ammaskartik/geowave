@@ -2,7 +2,7 @@ package mil.nga.giat.geowave.analytic.mapreduce.dbscan;
 
 import java.util.Iterator;
 
-import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborList;
+import mil.nga.giat.geowave.analytic.nn.NeighborList;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 
 public interface Cluster<NNTYPE> extends

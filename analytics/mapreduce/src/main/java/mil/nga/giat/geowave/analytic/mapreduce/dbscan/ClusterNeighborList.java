@@ -4,9 +4,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import mil.nga.giat.geowave.analytic.mapreduce.nn.DistanceProfile;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborList;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborListFactory;
+import mil.nga.giat.geowave.analytic.nn.DistanceProfile;
+import mil.nga.giat.geowave.analytic.nn.NeighborList;
+import mil.nga.giat.geowave.analytic.nn.NeighborListFactory;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 
 public class ClusterNeighborList<NNTYPE> implements
@@ -77,11 +77,6 @@ public class ClusterNeighborList<NNTYPE> implements
 	@Override
 	public boolean isEmpty() {
 		return getCluster().isEmpty();
-	}
-
-	@Override
-	public void init() {
-		getCluster().init();
 	}
 
 	public static class ClusterNeighborListFactory<NNTYPE> implements

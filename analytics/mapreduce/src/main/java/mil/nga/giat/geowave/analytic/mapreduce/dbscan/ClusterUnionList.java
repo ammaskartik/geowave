@@ -4,9 +4,9 @@ import java.util.Map;
 
 import mil.nga.giat.geowave.analytic.GeometryHullTool;
 import mil.nga.giat.geowave.analytic.distance.DistanceFn;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.DistanceProfile;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborList;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.NeighborListFactory;
+import mil.nga.giat.geowave.analytic.nn.DistanceProfile;
+import mil.nga.giat.geowave.analytic.nn.NeighborList;
+import mil.nga.giat.geowave.analytic.nn.NeighborListFactory;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 
 import org.slf4j.Logger;

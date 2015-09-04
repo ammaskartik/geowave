@@ -1,4 +1,4 @@
-package mil.nga.giat.geowave.analytic.mapreduce.nn;
+package mil.nga.giat.geowave.analytic.nn;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +51,6 @@ public class NeighborIndex<NNTYPE>
 					id,
 					neighbors);
 		}
-		neighbors.init();
 		return neighbors;
 	}
 

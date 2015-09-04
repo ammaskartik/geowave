@@ -1,4 +1,4 @@
-package mil.nga.giat.geowave.analytic.mapreduce.nn;
+package mil.nga.giat.geowave.analytic.nn;
 
 import java.util.Map.Entry;
 
@@ -43,9 +43,4 @@ public interface NeighborList<NNTYPE> extends
 
 	public boolean isEmpty();
 
-	/**
-	 * Called when the driving code begins a search for neighbors of associated
-	 * item.
-	 */
-	public void init();
 }

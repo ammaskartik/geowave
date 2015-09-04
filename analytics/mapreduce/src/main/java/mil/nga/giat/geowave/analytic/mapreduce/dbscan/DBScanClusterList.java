@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import mil.nga.giat.geowave.analytic.GeometryHullTool;
-import mil.nga.giat.geowave.analytic.mapreduce.nn.DistanceProfile;
+import mil.nga.giat.geowave.analytic.nn.DistanceProfile;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 
 import org.slf4j.Logger;
@@ -210,12 +210,6 @@ public abstract class DBScanClusterList implements
 	public Geometry get() {
 		return compress();
 	}
-
-	/**
-	 * 
-	 */
-	@Override
-	public void init() {}
 
 	@Override
 	public abstract boolean isCompressed();

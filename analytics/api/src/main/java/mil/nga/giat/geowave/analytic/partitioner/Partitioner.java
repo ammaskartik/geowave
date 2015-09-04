@@ -90,7 +90,6 @@ public interface Partitioner<T>
 			return isPrimary;
 		}
 
-		
 		public PartitionData() {}
 
 		public PartitionData(

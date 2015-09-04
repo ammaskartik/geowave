@@ -475,7 +475,10 @@ public class NNMapReduce
 
 			}
 			else {
-				final List<PartitionData> Singleton = Collections.singletonList(new PartitionData(new ByteArrayId("1"),true));
+				final List<PartitionData> Singleton = Collections.singletonList(new PartitionData(
+						new ByteArrayId(
+								"1"),
+						true));
 				this.partitioner = new Partitioner<Object>() {
 
 					@Override

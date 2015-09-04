@@ -316,7 +316,7 @@ public class DBScanMapReduceTest
 		final List<Pair<PartitionDataWritable, List<AdapterWithObjectWritable>>> partitions = getReducerDataFromMapperInput(mapperResults);
 
 		reduceDriver.addAll(partitions);
-		
+
 		reduceDriver.getConfiguration().setInt(
 				GeoWaveConfiguratorBase.enumToConfKey(
 						NNMapReduce.class,
@@ -427,7 +427,6 @@ public class DBScanMapReduceTest
 						ClusteringParameters.Clustering.MINIMUM_SIZE),
 				4);
 
-
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
 		assertTrue(reduceResults.size() == 1);
 	}
@@ -461,7 +460,7 @@ public class DBScanMapReduceTest
 		final List<Pair<PartitionDataWritable, List<AdapterWithObjectWritable>>> partitions = getReducerDataFromMapperInput(mapperResults);
 
 		reduceDriver.addAll(partitions);
-		
+
 		reduceDriver.getConfiguration().setInt(
 				GeoWaveConfiguratorBase.enumToConfKey(
 						NNMapReduce.class,

@@ -654,13 +654,12 @@ public class GeoWaveInputFormat<T> extends
 										statsCache,
 										context),
 								clippedRange);
-						if (!(fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
-							rangeList.add(new RangeLocationPair(
-									clippedRange,
-									location,
-									cardinality < 1 ? 1 : cardinality));
-						}
-						else {
+						rangeList.add(new RangeLocationPair(
+								clippedRange,
+								location,
+								cardinality < 1 ? 1 : cardinality));
+
+						if ((fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
 							LOGGER.info("Query split outside of range");
 						}
 						if (LOGGER.isTraceEnabled()) LOGGER.warn("Clipped range: " + rangeList.get(

@@ -93,8 +93,7 @@ public class DBScanMapReduce
 				return;
 			}
 			Cluster<VALUEIN> cluster = ((ClusterNeighborList) neighbors).getCluster();
-			if (cluster == null) 
-				return;
+			if (cluster == null) return;
 			if (cluster.size() < minOwners) {
 				LOGGER.info(
 						"Invalidate {} ",
@@ -168,14 +167,17 @@ public class DBScanMapReduce
 		/**
 		 * Find the large clusters and condense them down. Find the points that
 		 * are not reachable to viable clusters and remove them.
-		 * @throws InterruptedException 
-		 * @throws IOException 
+		 * 
+		 * @throws InterruptedException
+		 * @throws IOException
 		 */
 		@Override
 		protected void preprocess(
 				final Reducer<PartitionDataWritable, AdapterWithObjectWritable, GeoWaveInputKey, ObjectWritable>.Context context,
 				final NNProcessor<Object, ClusterItem> processor,
-				final Map<ByteArrayId, Cluster<ClusterItem>> index ) throws IOException, InterruptedException{
+				final Map<ByteArrayId, Cluster<ClusterItem>> index )
+				throws IOException,
+				InterruptedException {
 			if (!firstIteration) return;
 
 			processor.process(
@@ -196,7 +198,7 @@ public class DBScanMapReduce
 								value.setCount(list.size());
 								Iterator<ByteArrayId> it = cluster.getLinkedClusters();
 								while (it.hasNext()) {
-									ByteArrayId idToRemove = it.next();								
+									ByteArrayId idToRemove = it.next();
 									processor.remove(idToRemove);
 									it.remove();
 								}

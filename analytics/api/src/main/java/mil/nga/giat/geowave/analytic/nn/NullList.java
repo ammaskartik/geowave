@@ -46,5 +46,4 @@ public class NullList<NNTYPE> implements
 		return true;
 	}
 
-
 }

@@ -54,14 +54,16 @@ public abstract class StatsOperation implements
 		if (adapterId != null) {
 			adapterStore.getAdapter(adapterId);
 			if (adapter == null) {
-				LOGGER.error("Unknown adapter " + adapterId);				
-				Iterator<DataAdapter<?>> it =  adapterStore.getAdapters();
+				LOGGER.error("Unknown adapter " + adapterId);
+				Iterator<DataAdapter<?>> it = adapterStore.getAdapters();
 				StringBuffer buffer = new StringBuffer();
-				while (it.hasNext()){
+				while (it.hasNext()) {
 					adapter = it.next();
-				    buffer.append(adapter.getAdapterId().getString()).append(' ');
+					buffer.append(
+							adapter.getAdapterId().getString()).append(
+							' ');
 				}
-			    LOGGER.info("Available adapters: " +  buffer.toString());
+				LOGGER.info("Available adapters: " + buffer.toString());
 				return false;
 			}
 		}

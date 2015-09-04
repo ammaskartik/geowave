@@ -25,21 +25,19 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 	final Map<ByteArrayId, STORE_VALUE> primaries = new HashMap<ByteArrayId, STORE_VALUE>();
 	final Map<ByteArrayId, STORE_VALUE> others = new HashMap<ByteArrayId, STORE_VALUE>();
 
-
 	protected final Partitioner<Object> partitioner;
 	protected final TypeConverter<STORE_VALUE> typeConverter;
 
 	protected final DistanceProfileGenerateFn<?, STORE_VALUE> distanceProfileFn;
 	protected final double maxDistance;
 	protected final PartitionData parentPartition;
-	
-	
+
 	/**
 	 * Run State
 	 */
 	protected ByteArrayId startingPoint;
-	protected NeighborIndex<STORE_VALUE> index; 
-	
+	protected NeighborIndex<STORE_VALUE> index;
+
 	public NNProcessor(
 			Partitioner<Object> partitioner,
 			TypeConverter<STORE_VALUE> typeConverter,
@@ -86,9 +84,12 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 		return singleton;
 	}
 
-	public void remove(final ByteArrayId id) {
+	public void remove(
+			final ByteArrayId id ) {
 		for (PartitionData pd : idsToPartition.remove(id)) {
-			partitionsToIds.get(pd).remove(id);
+			partitionsToIds.get(
+					pd).remove(
+					id);
 		}
 		primaries.remove(id);
 		others.remove(id);
@@ -96,7 +97,7 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 			index.empty(id);
 		}
 	}
-	
+
 	public void add(
 			final ByteArrayId id,
 			final boolean isPrimary,
@@ -159,8 +160,7 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 			throws IOException,
 			InterruptedException {
 
-		LOGGER.info("Processing " + parentPartition.toString() + " with primary = " + primaries.size()
-				+ " and other = " + others.size());
+		LOGGER.info("Processing " + parentPartition.toString() + " with primary = " + primaries.size() + " and other = " + others.size());
 		LOGGER.info("Processing " + parentPartition.toString() + " with sub-partitions = " + uniqueSetOfPartitions.size());
 
 		index = new NeighborIndex<STORE_VALUE>(
@@ -184,8 +184,7 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 			final ByteArrayId primaryId = nextStart;
 			nextStart = null;
 			farthestNeighbor = null;
-			if (LOGGER.isTraceEnabled())
-			   LOGGER.trace("processing " + primaryId);
+			if (LOGGER.isTraceEnabled()) LOGGER.trace("processing " + primaryId);
 			if (primary == null) {
 				if (inspectionSet.size() > 0) {
 					nextStart = inspectionSet.iterator().next();
@@ -203,7 +202,7 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 					STORE_VALUE neighbor = primaries.get(neighborId);
 					if (neighbor == null) {
 						neighbor = others.get(neighborId);
-						isAPrimary =false;
+						isAPrimary = false;
 					}
 					if (neighbor == null) continue;
 					final InferType inferResult = primaryList.infer(
@@ -222,8 +221,7 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 									neighborId,
 									neighbor,
 									isAPrimary);
-							if (LOGGER.isTraceEnabled())
-								   LOGGER.trace("Neighbor " + neighborId);
+							if (LOGGER.isTraceEnabled()) LOGGER.trace("Neighbor " + neighborId);
 						}
 						if (distance > farthestDistance && inspectionSet.contains(neighborId)) {
 							farthestDistance = distance;

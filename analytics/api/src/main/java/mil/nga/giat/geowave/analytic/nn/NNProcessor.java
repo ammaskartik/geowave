@@ -86,10 +86,13 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 
 	public void remove(
 			final ByteArrayId id ) {
-		for (PartitionData pd : idsToPartition.remove(id)) {
-			partitionsToIds.get(
-					pd).remove(
-					id);
+
+		final Set<PartitionData> partitionSet = idsToPartition.remove(id);
+		if (partitionSet != null) {
+			for (PartitionData pd : partitionSet) {
+				final Set<ByteArrayId> idSet = partitionsToIds.get(pd);
+				if (idSet != null) idSet.remove(id);
+			}
 		}
 		primaries.remove(id);
 		others.remove(id);
@@ -204,6 +207,9 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 						neighbor = others.get(neighborId);
 						isAPrimary = false;
 					}
+					else // prior processed primary
+					if (!inspectionSet.contains(neighborId)) continue;
+
 					if (neighbor == null) continue;
 					final InferType inferResult = primaryList.infer(
 							neighborId,

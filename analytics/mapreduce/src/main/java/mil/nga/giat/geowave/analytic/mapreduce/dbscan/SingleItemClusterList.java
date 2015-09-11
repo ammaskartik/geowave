@@ -1,5 +1,6 @@
 package mil.nga.giat.geowave.analytic.mapreduce.dbscan;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ public class SingleItemClusterList extends
 			final NeighborListFactory<ClusterItem> factory,
 			final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
 		super(
+				(int) center.getCount(),
 				mergeSize,
 				connectGeometryTool,
 				centerId,
@@ -47,23 +49,14 @@ public class SingleItemClusterList extends
 
 		final Geometry clusterGeo = center.getGeometry();
 
-		super.clusterGeo = clusterGeo.getCentroid();
-
 		initializedAsPoint = clusterGeo instanceof Point;
 
-		if (initializedAsPoint) {
-			clusterPoints.add(clusterGeo.getCoordinate());
+		this.compressed = center.isCompressed();
+
+		if (initializedAsPoint || compressed) {
+			clusterPoints.add(clusterGeo.getCentroid().getCoordinate());
+			super.clusterGeo = clusterGeo;
 		}
-	}
-
-	@Override
-	public int size() {
-		return super.size() + this.clusterPoints.size();
-	}
-
-	@Override
-	public void invalidate() {
-		super.invalidate();
 	}
 
 	@Override
@@ -79,36 +72,33 @@ public class SingleItemClusterList extends
 			final DistanceProfile<?> distanceProfile ) {
 		final ClusterProfileContext context = (ClusterProfileContext) distanceProfile.getContext();
 
+		boolean checkForCompress = false;
 		// If initialized from a point, then any hull created during compression
 		// contains that point.
 		// Adding that point is not needed. Points from coordinates[0] (center)
 		// are only added if they are part of more complex geometry.
 		if (!initializedAsPoint) {
 			final Coordinate centerCoordinate = context.getItem1() == newInstance ? context.getPoint2() : context.getPoint1();
-			if (!clusterPoints.contains(centerCoordinate) && (!this.clusterGeo.covers(clusterGeo.getFactory().createPoint(
-					centerCoordinate)))) {
-				clusterPoints.add(centerCoordinate);
-			}
+			checkForCompress = clusterPoints.add(centerCoordinate);
 		}
 		final Coordinate newInstanceCoordinate = context.getItem2() == newInstance ? context.getPoint2() : context.getPoint1();
-		// optimization to avoid creating a point if a representative one
-		// already exists. Also, do not add if the point is already accounted
-		// for
-		if (newInstance.getGeometry() instanceof Point) {
-			if (!clusterGeo.covers(newInstance.getGeometry())) {
-				clusterPoints.add(newInstanceCoordinate);
-			}
-		}
-		else {
-			// need to create point since the provided coordinate is most likely
-			// some point on a segment rather than a vertex
-			if (!clusterGeo.covers(clusterGeo.getFactory().createPoint(
-					newInstanceCoordinate))) {
-				clusterPoints.add(newInstanceCoordinate);
-			}
-		}
 
-		checkForCompression();
+		checkForCompress = clusterPoints.add(newInstanceCoordinate);
+		/*
+		 * // optimization to avoid creating a point if a representative one //
+		 * already exists. Also, do not add if the point is already accounted //
+		 * for if (newInstance.getGeometry() instanceof Point) { if (clusterGeo
+		 * == null || clusterGeo instanceof Point) { checkForCompress =
+		 * clusterPoints.add(newInstanceCoordinate); } else if
+		 * (!clusterGeo.contains(newInstance.getGeometry())) { checkForCompress
+		 * = clusterPoints.add(newInstanceCoordinate); } } else { // need to
+		 * create point since the provided coordinate is most likely // some
+		 * point on a segment rather than a vertex if (clusterGeo == null ||
+		 * !clusterGeo.contains(clusterGeo.getFactory().createPoint(
+		 * newInstanceCoordinate))) { checkForCompress =
+		 * clusterPoints.add(newInstanceCoordinate); } }
+		 */
+		if (checkForCompress) checkForCompression();
 		return 1;
 	}
 
@@ -116,30 +106,47 @@ public class SingleItemClusterList extends
 	public void merge(
 			Cluster<ClusterItem> cluster ) {
 		if (this == cluster) return;
-		super.merge(cluster);
+
 		final SingleItemClusterList singleItemCluster = ((SingleItemClusterList) cluster);
-		if (this.compressed || singleItemCluster.compressed) {
-			if (!this.compressed) {
-				this.clusterGeo = singleItemCluster.clusterGeo;
-				clusterPoints.addAll(singleItemCluster.clusterPoints);
-			}
-			else {
-				if (singleItemCluster.compressed) {
-					union(singleItemCluster.clusterGeo);
-				}
-				for (Coordinate newInstanceCoordinate : singleItemCluster.clusterPoints) {
-					if (!clusterGeo.covers(clusterGeo.getFactory().createPoint(
-							newInstanceCoordinate))) {
-						clusterPoints.add(newInstanceCoordinate);
-					}
-				}
-			}
+		// do not want to count these items with the geometry intersection
+		singleItemCluster.itemCount -= singleItemCluster.clusterPoints.size();
+
+		super.merge(cluster);
+
+		if (singleItemCluster.clusterGeo != null) {
+			clusterPoints.addAll(Arrays.asList(singleItemCluster.clusterGeo.getCoordinates()));
 		}
-		else {
-			clusterPoints.addAll(singleItemCluster.clusterPoints);
-		}
+
+		/*
+		 * if (this.compressed || singleItemCluster.compressed) { if
+		 * (!this.compressed) { this.clusterGeo = singleItemCluster.clusterGeo;
+		 * add( this.clusterPoints, singleItemCluster.clusterPoints);
+		 * clusterPoints.addAll(singleItemCluster.clusterPoints);
+		 * singleItemCluster.clusterPoints.clear(); } else { if
+		 * (singleItemCluster.compressed) { clusterGeo =
+		 * connectGeometryTool.createHullFromGeometry( clusterGeo,
+		 * Arrays.asList(singleItemCluster.clusterGeo.getCoordinates()), false);
+		 * } add( singleItemCluster.clusterPoints, this.clusterPoints); } } else
+		 * {
+		 */
+
+		// handle any remaining points
+		long snapShot = clusterPoints.size();
+		clusterPoints.addAll(singleItemCluster.clusterPoints);
+		incrementItemCount(clusterPoints.size() - snapShot);
+
 		checkForCompression();
 	}
+
+	/*
+	 * private void add( final Set<Coordinate> fromCluster, final
+	 * Set<Coordinate> toCluster ) { for (Coordinate newInstanceCoordinate :
+	 * fromCluster) { if (clusterGeo == null ||
+	 * !clusterGeo.contains(clusterGeo.getFactory().createPoint(
+	 * newInstanceCoordinate))) { itemCount +=
+	 * (toCluster.add(newInstanceCoordinate) ? 1 : 0); } } fromCluster.clear();
+	 * }
+	 */
 
 	public boolean isCompressed() {
 		return compressed;
@@ -148,7 +155,6 @@ public class SingleItemClusterList extends
 	private void checkForCompression() {
 		if (clusterPoints.size() > 200) {
 			clusterGeo = compress();
-			incrementItemCount(clusterPoints.size());
 			clusterPoints.clear();
 			compressed = true;
 		}

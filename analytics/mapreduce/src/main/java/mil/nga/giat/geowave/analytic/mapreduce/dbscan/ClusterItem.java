@@ -10,15 +10,26 @@ public class ClusterItem
 	private final String id;
 	private Geometry geometry;
 	private long count;
+	private boolean compressed = false;
 
 	public ClusterItem(
 			final String id,
 			final Geometry geometry,
-			final long count ) {
+			final long count,
+			final boolean compressed ) {
 		super();
 		this.id = id;
 		this.geometry = geometry;
 		this.count = count;
+		this.compressed = compressed;
+	}
+
+	public void setCompressed() {
+		this.compressed = true;
+	}
+
+	protected boolean isCompressed() {
+		return this.compressed;
 	}
 
 	protected String getId() {

@@ -38,8 +38,8 @@ public abstract class DBScanClusterList implements
 	protected static final Logger LOGGER = LoggerFactory.getLogger(DBScanClusterList.class);
 
 	// internal state
-	protected Geometry clusterGeo;
-	protected int itemCount = 0;
+	protected Geometry clusterGeo = null;
+	protected int itemCount = 1;
 	private final Set<ByteArrayId> linkedClusters = new HashSet<ByteArrayId>();
 	private final List<ByteArrayId> ids = new ArrayList<ByteArrayId>(
 			4);
@@ -52,11 +52,13 @@ public abstract class DBScanClusterList implements
 	private final Map<ByteArrayId, Cluster<ClusterItem>> index;
 
 	public DBScanClusterList(
+			final int itemCount,
 			final int mergeSize,
 			final GeometryHullTool connectGeometryTool,
 			final ByteArrayId centerId,
 			final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
 		super();
+		this.itemCount = itemCount;
 		this.mergeSize = mergeSize;
 		this.connectGeometryTool = connectGeometryTool;
 		this.index = index;
@@ -83,17 +85,15 @@ public abstract class DBScanClusterList implements
 
 		Cluster<ClusterItem> cluster = index.get(newId);
 
-		if (cluster == null || (!cluster.isFinished())) {
-			// The list of clustered IDs is not adjusted if this added id is
-			// already
-			// assigned to another cluster.
-			incrementItemCount(addAndFetchCount(
-					newId,
-					newInstance,
-					distanceProfile));
-		}
+		if (cluster == this )
+			return false;
 
-		mergeIfPossible(this.isFinished);
+		incrementItemCount(addAndFetchCount(
+				newId,
+				newInstance,
+				distanceProfile));
+
+		if (isFinished) mergeIfPossible(false);
 
 		return true;
 	}
@@ -126,14 +126,10 @@ public abstract class DBScanClusterList implements
 				linkedCluster.linkedClusters.remove(id);
 			}
 		}
+		LOGGER.trace("Invalidate " + id);
 		index.remove(id);
 		clusterGeo = null;
 		itemCount = -1;
-	}
-
-	protected boolean hasGeo(
-			Geometry entryGeo ) {
-		return clusterGeo.covers(entryGeo);
 	}
 
 	@Override
@@ -230,8 +226,9 @@ public abstract class DBScanClusterList implements
 						this);
 				this.ids.add(id);
 			}
-			if (isCompressed() || ((DBScanClusterList) cluster).isCompressed()) {
-				this.itemCount += (interpolateFactor(((DBScanClusterList) cluster).clusterGeo) * ((DBScanClusterList) cluster).itemCount);
+			this.linkedClusters.addAll(((DBScanClusterList) cluster).linkedClusters);
+			if (isCompressed() && ((DBScanClusterList) cluster).isCompressed()) {
+				incrementItemCount((long) (interpolateFactor(((DBScanClusterList) cluster).clusterGeo) * ((DBScanClusterList) cluster).itemCount));
 			}
 		}
 	}
@@ -239,13 +236,16 @@ public abstract class DBScanClusterList implements
 	protected double interpolateFactor(
 			final Geometry areaBeingMerged ) {
 		try {
+			if (clusterGeo == null) return 1.0;
 			Geometry intersection = areaBeingMerged.intersection(clusterGeo);
 			double geo2Area = areaBeingMerged.getArea();
 			if (intersection != null) {
-				if (geo2Area > 0)
-					return 1.0 - (intersection.getArea() / geo2Area);
+				if (intersection instanceof Point && areaBeingMerged instanceof Point)
+					return 0.0;
 				else if (intersection.isEmpty())
 					return 1.0;
+				else if (geo2Area > 0)
+					return 1.0 - (intersection.getArea() / geo2Area);
 				else
 					return 0.0;
 			}
@@ -275,8 +275,13 @@ public abstract class DBScanClusterList implements
 	protected void union(
 			Geometry otherGeo ) {
 
+		if (otherGeo == null) return;
 		try {
-			if (clusterGeo instanceof Point) {
+
+			if (clusterGeo == null) {
+				clusterGeo = otherGeo;
+			}
+			else if (clusterGeo instanceof Point) {
 				clusterGeo = otherGeo.union(clusterGeo);
 			}
 			else {
@@ -295,7 +300,7 @@ public abstract class DBScanClusterList implements
 		}
 	}
 
-	private void mergeIfPossible(
+	protected void mergeIfPossible(
 			final boolean deleteNonLinks ) {
 		if (this.size() < this.mergeSize || this.linkedClusters.size() == 0) return;
 
@@ -308,8 +313,9 @@ public abstract class DBScanClusterList implements
 				deleteNonLinks);
 		if (readyClusters.size() == 1) return;
 
+		readyClusters.remove(this);
 		final Iterator<Cluster<ClusterItem>> finishedIt = readyClusters.iterator();
-		Cluster<ClusterItem> top = finishedIt.next();
+		Cluster<ClusterItem> top = this;
 		while (finishedIt.hasNext()) {
 			top.merge(finishedIt.next());
 		}
@@ -320,8 +326,8 @@ public abstract class DBScanClusterList implements
 			final DBScanClusterList cluster,
 			final boolean deleteNonLinks ) {
 		final Iterator<ByteArrayId> linkedClusterIt = cluster.getLinkedClusters();
-		boolean merged = false;
 		while (linkedClusterIt.hasNext()) {
+			boolean merged = false;
 			final ByteArrayId linkedClusterId = linkedClusterIt.next();
 			final Cluster<ClusterItem> linkedCluster = index.get(linkedClusterId);
 			if (linkedCluster != null) {
@@ -341,7 +347,7 @@ public abstract class DBScanClusterList implements
 
 	@Override
 	public String toString() {
-		return "DBScanClusterList [clusterGeo=" + clusterGeo + ", ids=" + ids + "]";
+		return "DBScanClusterList [clusterGeo=" + (clusterGeo == null ? "null" : clusterGeo.toString()) + ", ids=" + ids + "]";
 	}
 
 }

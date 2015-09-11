@@ -20,6 +20,7 @@ import mil.nga.giat.geowave.analytic.distance.CoordinateCircleDistanceFn;
 import mil.nga.giat.geowave.analytic.mapreduce.JobContextConfigurationWrapper;
 import mil.nga.giat.geowave.analytic.mapreduce.dbscan.ClusterNeighborList.ClusterNeighborListFactory;
 import mil.nga.giat.geowave.analytic.mapreduce.dbscan.ClusterUnionList.ClusterUnionListFactory;
+import mil.nga.giat.geowave.analytic.mapreduce.dbscan.PreProcessSingleItemClusterList.PreProcessSingleItemClusterListFactory;
 import mil.nga.giat.geowave.analytic.mapreduce.dbscan.SingleItemClusterList.SingleItemClusterListFactory;
 import mil.nga.giat.geowave.analytic.mapreduce.nn.NNMapReduce;
 import mil.nga.giat.geowave.analytic.mapreduce.nn.NNMapReduce.NNReducer;
@@ -149,7 +150,8 @@ public class DBScanMapReduce
 			return new ClusterItem(
 					feature.getID(),
 					projection.getProjection(feature),
-					count == null ? 1 : count);
+					count == null ? 1 : count,
+					false);
 		}
 	}
 
@@ -178,10 +180,15 @@ public class DBScanMapReduce
 				final Map<ByteArrayId, Cluster<ClusterItem>> index )
 				throws IOException,
 				InterruptedException {
-			if (!firstIteration) return;
+			if(!this.firstIteration) return;
 
 			processor.process(
-					createNeighborsListFactory(index),
+					new ClusterNeighborListFactory<ClusterItem>(
+							new PreProcessSingleItemClusterListFactory(
+									this.minOwners,
+									new CoordinateCircleDistanceFn(),
+									index),
+							index),
 					new CompleteNotifier<ClusterItem>() {
 
 						@Override
@@ -193,9 +200,10 @@ public class DBScanMapReduce
 							if (cluster.size() < minOwners) {
 								processor.remove(id);
 							}
-							if (cluster.isCompressed()) {
+							else if (cluster.isCompressed()) {
 								value.setGeometry(cluster.get());
 								value.setCount(list.size());
+								value.setCompressed();
 								Iterator<ByteArrayId> it = cluster.getLinkedClusters();
 								while (it.hasNext()) {
 									ByteArrayId idToRemove = it.next();

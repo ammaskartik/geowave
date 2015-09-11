@@ -1,85 +1,65 @@
 package mil.nga.giat.geowave.analytic.mapreduce.dbscan;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import mil.nga.giat.geowave.analytic.GeometryHullTool;
 import mil.nga.giat.geowave.analytic.distance.DistanceFn;
+import mil.nga.giat.geowave.analytic.mapreduce.dbscan.ClusterItemDistanceFn.ClusterProfileContext;
 import mil.nga.giat.geowave.analytic.nn.DistanceProfile;
 import mil.nga.giat.geowave.analytic.nn.NeighborList;
 import mil.nga.giat.geowave.analytic.nn.NeighborListFactory;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * 
- * A cluster represented by a hull.
+ * Maintains a single hull around a set of points.
  * 
  * Intended to run in a single thread. Not Thread Safe.
  * 
- * 
- * TODO: connectGeometryTool.connect(
  */
-public class ClusterUnionList extends
-		DBScanClusterList implements
+public class PreProcessSingleItemClusterList extends
+		SingleItemClusterList implements
 		CompressingCluster<ClusterItem, Geometry>
 {
 
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ClusterUnionList.class);
-
-	public ClusterUnionList(
-			final GeometryHullTool connectGeometryTool,
-			final ByteArrayId centerId,
-			final ClusterItem center,
-			final NeighborListFactory<ClusterItem> factory,
-			final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
+	public PreProcessSingleItemClusterList(
+			int mergeSize,
+			GeometryHullTool connectGeometryTool,
+			ByteArrayId centerId,
+			ClusterItem center,
+			NeighborListFactory<ClusterItem> factory,
+			Map<ByteArrayId, Cluster<ClusterItem>> index ) {
 		super(
-				(int) center.getCount(),
-				1,
+				mergeSize,
 				connectGeometryTool,
 				centerId,
+				center,
+				factory,
 				index);
-		super.clusterGeo = center.getGeometry();
 	}
 
-	protected long addAndFetchCount(
-			final ByteArrayId id,
-			final ClusterItem newInstance,
-			final DistanceProfile<?> distanceProfile ) {
-		return 0;
-	}
+	protected void mergeIfPossible(
+			final boolean deleteNonLinks ) {}
 
-	@Override
-	public void merge(
-			final Cluster<ClusterItem> cluster ) {
-		super.merge(cluster);
-		if (cluster != this) {
-			union(((DBScanClusterList) cluster).clusterGeo);
-		}
-	}
-
-	public boolean isCompressed() {
-		return true;
-	}
-
-	protected Geometry compress() {
-		return clusterGeo;
-	}
-
-	public static class ClusterUnionListFactory implements
+	public static class PreProcessSingleItemClusterListFactory implements
 			NeighborListFactory<ClusterItem>
 	{
 		private final Map<ByteArrayId, Cluster<ClusterItem>> index;
 		protected final GeometryHullTool connectGeometryTool = new GeometryHullTool();
+		final int mergeSize;
 
-		public ClusterUnionListFactory(
+		public PreProcessSingleItemClusterListFactory(
+				final int mergeSize,
 				final DistanceFn<Coordinate> distanceFnForCoordinate,
 				final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
 			super();
+			this.mergeSize = mergeSize;
 			connectGeometryTool.setDistanceFnForCoordinate(distanceFnForCoordinate);
 			this.index = index;
 		}
@@ -89,12 +69,14 @@ public class ClusterUnionList extends
 				final ClusterItem center ) {
 			Cluster<ClusterItem> list = index.get(centerId);
 			if (list == null) {
-				list = new ClusterUnionList(
+				list = new PreProcessSingleItemClusterList(
+						mergeSize,
 						connectGeometryTool,
 						centerId,
 						center,
 						this,
 						index);
+
 			}
 			return list;
 		}

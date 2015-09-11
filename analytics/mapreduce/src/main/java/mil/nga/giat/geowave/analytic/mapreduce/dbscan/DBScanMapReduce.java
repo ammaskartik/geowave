@@ -96,7 +96,7 @@ public class DBScanMapReduce
 			Cluster<VALUEIN> cluster = ((ClusterNeighborList) neighbors).getCluster();
 			if (cluster == null) return;
 			if (cluster.size() < minOwners) {
-				LOGGER.info(
+				LOGGER.trace(
 						"Invalidate {} ",
 						primaryId);
 				cluster.invalidate();
@@ -180,7 +180,7 @@ public class DBScanMapReduce
 				final Map<ByteArrayId, Cluster<ClusterItem>> index )
 				throws IOException,
 				InterruptedException {
-			if(!this.firstIteration) return;
+			if (!this.firstIteration) return;
 
 			processor.process(
 					new ClusterNeighborListFactory<ClusterItem>(

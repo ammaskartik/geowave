@@ -9,23 +9,25 @@ import mil.nga.giat.geowave.analytic.nn.NeighborList;
 import mil.nga.giat.geowave.analytic.nn.NeighborListFactory;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 
-public class ClusterNeighborList<NNTYPE> implements
-		NeighborList<NNTYPE>
+public class ClusterNeighborList implements
+		NeighborList<ClusterItem>
 {
 	private final ByteArrayId id;
-	final Map<ByteArrayId, Cluster<NNTYPE>> index;
+	final Map<ByteArrayId, Cluster> index;
+	final NeighborListFactory<ClusterItem> factory;
 
 	public ClusterNeighborList(
 			final ByteArrayId centerId,
-			final NNTYPE center,
-			final NeighborListFactory<NNTYPE> factory,
-			final Map<ByteArrayId, Cluster<NNTYPE>> index ) {
+			final ClusterItem center,
+			final NeighborListFactory<ClusterItem> factory,
+			final Map<ByteArrayId, Cluster> index ) {
 		super();
 		this.index = index;
 		this.id = centerId;
-		Cluster<NNTYPE> cluster = getCluster();
+		this.factory = factory;
+		Cluster cluster = getCluster();
 		if (cluster == null) {
-			cluster = (Cluster<NNTYPE>) factory.buildNeighborList(
+			cluster = (Cluster) factory.buildNeighborList(
 					id,
 					center);
 			index.put(
@@ -34,12 +36,12 @@ public class ClusterNeighborList<NNTYPE> implements
 		}
 	}
 
-	public Cluster<NNTYPE> getCluster() {
+	public Cluster getCluster() {
 		return index.get(id);
 	}
 
 	@Override
-	public Iterator<Entry<ByteArrayId, NNTYPE>> iterator() {
+	public Iterator<Entry<ByteArrayId, ClusterItem>> iterator() {
 		return getCluster().iterator();
 	}
 
@@ -47,7 +49,16 @@ public class ClusterNeighborList<NNTYPE> implements
 	public boolean add(
 			DistanceProfile<?> distanceProfile,
 			final ByteArrayId id,
-			final NNTYPE value ) {
+			final ClusterItem value ) {
+		Cluster cluster = index.get(id);
+		if (cluster == null) {
+			cluster = (Cluster) factory.buildNeighborList(
+					id,
+					value);
+			index.put(
+					id,
+					cluster);
+		}
 		return getCluster().add(
 				distanceProfile,
 				id,
@@ -57,7 +68,7 @@ public class ClusterNeighborList<NNTYPE> implements
 	@Override
 	public InferType infer(
 			final ByteArrayId id,
-			final NNTYPE value ) {
+			final ClusterItem value ) {
 		return getCluster().infer(
 				id,
 				value);
@@ -79,24 +90,28 @@ public class ClusterNeighborList<NNTYPE> implements
 		return getCluster().isEmpty();
 	}
 
-	public static class ClusterNeighborListFactory<NNTYPE> implements
-			NeighborListFactory<NNTYPE>
+	public static class ClusterNeighborListFactory implements
+			NeighborListFactory<ClusterItem>
 	{
-		final Map<ByteArrayId, Cluster<NNTYPE>> index;
-		final NeighborListFactory<NNTYPE> factory;
+		final Map<ByteArrayId, Cluster> index;
+		final NeighborListFactory<ClusterItem> factory;
 
 		public ClusterNeighborListFactory(
-				NeighborListFactory<NNTYPE> factory,
-				Map<ByteArrayId, Cluster<NNTYPE>> index ) {
+				NeighborListFactory<ClusterItem> factory,
+				Map<ByteArrayId, Cluster> index ) {
 			super();
 			this.index = index;
 			this.factory = factory;
 		}
 
+		public Map<ByteArrayId, Cluster> getIndex() {
+			return index;
+		}
+
 		@Override
-		public NeighborList<NNTYPE> buildNeighborList(
+		public NeighborList<ClusterItem> buildNeighborList(
 				ByteArrayId centerId,
-				NNTYPE center ) {
+				ClusterItem center ) {
 			return new ClusterNeighborList(
 					centerId,
 					center,

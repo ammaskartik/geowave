@@ -26,24 +26,21 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 public class ClusterUnionList extends
 		DBScanClusterList implements
-		CompressingCluster<ClusterItem, Geometry>
+		Cluster
 {
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(ClusterUnionList.class);
 
 	public ClusterUnionList(
-			final GeometryHullTool connectGeometryTool,
 			final ByteArrayId centerId,
 			final ClusterItem center,
 			final NeighborListFactory<ClusterItem> factory,
-			final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
+			final Map<ByteArrayId, Cluster> index ) {
 		super(
+				center.getGeometry(),
 				(int) center.getCount(),
-				1,
-				connectGeometryTool,
 				centerId,
 				index);
-		super.clusterGeo = center.getGeometry();
 	}
 
 	protected long addAndFetchCount(
@@ -55,7 +52,7 @@ public class ClusterUnionList extends
 
 	@Override
 	public void merge(
-			final Cluster<ClusterItem> cluster ) {
+			final Cluster cluster ) {
 		super.merge(cluster);
 		if (cluster != this) {
 			union(((DBScanClusterList) cluster).clusterGeo);
@@ -73,24 +70,20 @@ public class ClusterUnionList extends
 	public static class ClusterUnionListFactory implements
 			NeighborListFactory<ClusterItem>
 	{
-		private final Map<ByteArrayId, Cluster<ClusterItem>> index;
-		protected final GeometryHullTool connectGeometryTool = new GeometryHullTool();
+		private final Map<ByteArrayId, Cluster> index;
 
 		public ClusterUnionListFactory(
-				final DistanceFn<Coordinate> distanceFnForCoordinate,
-				final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
+				final Map<ByteArrayId, Cluster> index ) {
 			super();
-			connectGeometryTool.setDistanceFnForCoordinate(distanceFnForCoordinate);
 			this.index = index;
 		}
 
 		public NeighborList<ClusterItem> buildNeighborList(
 				final ByteArrayId centerId,
 				final ClusterItem center ) {
-			Cluster<ClusterItem> list = index.get(centerId);
+			Cluster list = index.get(centerId);
 			if (list == null) {
 				list = new ClusterUnionList(
-						connectGeometryTool,
 						centerId,
 						center,
 						this,

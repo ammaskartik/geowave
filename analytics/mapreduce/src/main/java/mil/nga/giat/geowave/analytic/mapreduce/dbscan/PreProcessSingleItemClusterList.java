@@ -1,20 +1,11 @@
 package mil.nga.giat.geowave.analytic.mapreduce.dbscan;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
-import mil.nga.giat.geowave.analytic.GeometryHullTool;
-import mil.nga.giat.geowave.analytic.distance.DistanceFn;
-import mil.nga.giat.geowave.analytic.mapreduce.dbscan.ClusterItemDistanceFn.ClusterProfileContext;
-import mil.nga.giat.geowave.analytic.nn.DistanceProfile;
 import mil.nga.giat.geowave.analytic.nn.NeighborList;
 import mil.nga.giat.geowave.analytic.nn.NeighborListFactory;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
 /**
  * 
@@ -25,53 +16,60 @@ import com.vividsolutions.jts.geom.Point;
  */
 public class PreProcessSingleItemClusterList extends
 		SingleItemClusterList implements
-		CompressingCluster<ClusterItem, Geometry>
+		Cluster
 {
 
 	public PreProcessSingleItemClusterList(
-			int mergeSize,
-			GeometryHullTool connectGeometryTool,
 			ByteArrayId centerId,
 			ClusterItem center,
 			NeighborListFactory<ClusterItem> factory,
-			Map<ByteArrayId, Cluster<ClusterItem>> index ) {
+			Map<ByteArrayId, Cluster> index ) {
 		super(
-				mergeSize,
-				connectGeometryTool,
 				centerId,
 				center,
 				factory,
 				index);
 	}
 
-	protected void mergeIfPossible(
-			final boolean deleteNonLinks ) {}
+	@Override
+	protected void mergeLinks(
+			final boolean deleteNonLinks ) {
+		for (ByteArrayId id : this.getLinkedClusters()) {
+			PreProcessSingleItemClusterList other = (PreProcessSingleItemClusterList) index.get(id);
+			final long snapShot = getClusterPoints(
+					false).size();
+			if (other.clusterGeo != null) {
+				getClusterPoints(
+						true).addAll(
+						Arrays.asList(other.clusterGeo.getCoordinates()));
+			}
+			getClusterPoints(
+					true).addAll(
+					other.getClusterPoints(false));
+			incrementItemCount(getClusterPoints(
+					true).size() - snapShot);
+		}
+
+	}
 
 	public static class PreProcessSingleItemClusterListFactory implements
 			NeighborListFactory<ClusterItem>
 	{
-		private final Map<ByteArrayId, Cluster<ClusterItem>> index;
-		protected final GeometryHullTool connectGeometryTool = new GeometryHullTool();
-		final int mergeSize;
+		private final Map<ByteArrayId, Cluster> index;
 
 		public PreProcessSingleItemClusterListFactory(
-				final int mergeSize,
-				final DistanceFn<Coordinate> distanceFnForCoordinate,
-				final Map<ByteArrayId, Cluster<ClusterItem>> index ) {
+				final Map<ByteArrayId, Cluster> index ) {
 			super();
-			this.mergeSize = mergeSize;
-			connectGeometryTool.setDistanceFnForCoordinate(distanceFnForCoordinate);
 			this.index = index;
 		}
 
+		@Override
 		public NeighborList<ClusterItem> buildNeighborList(
 				final ByteArrayId centerId,
 				final ClusterItem center ) {
-			Cluster<ClusterItem> list = index.get(centerId);
+			Cluster list = index.get(centerId);
 			if (list == null) {
 				list = new PreProcessSingleItemClusterList(
-						mergeSize,
-						connectGeometryTool,
 						centerId,
 						center,
 						this,

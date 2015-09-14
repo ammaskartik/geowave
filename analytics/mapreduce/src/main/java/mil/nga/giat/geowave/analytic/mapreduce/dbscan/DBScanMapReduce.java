@@ -46,7 +46,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
 
 /**
@@ -65,24 +64,24 @@ public class DBScanMapReduce
 {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(DBScanMapReduce.class);
 
-	public abstract static class DBScanMapReducer<VALUEIN, KEYOUT, VALUEOUT> extends
-			NNReducer<VALUEIN, KEYOUT, VALUEOUT, Map<ByteArrayId, Cluster<VALUEIN>>>
+	public abstract static class DBScanMapReducer<KEYOUT, VALUEOUT> extends
+			NNReducer<ClusterItem, KEYOUT, VALUEOUT, Map<ByteArrayId, Cluster>>
 	{
 		protected int minOwners = 0;
 
 		@Override
-		protected Map<ByteArrayId, Cluster<VALUEIN>> createSummary() {
-			return new HashMap<ByteArrayId, Cluster<VALUEIN>>();
+		protected Map<ByteArrayId, Cluster> createSummary() {
+			return new HashMap<ByteArrayId, Cluster>();
 		}
 
 		@Override
 		protected void processNeighbors(
 				final PartitionData partitionData,
 				final ByteArrayId primaryId,
-				final VALUEIN primary,
-				final NeighborList<VALUEIN> neighbors,
+				final ClusterItem primary,
+				final NeighborList<ClusterItem> neighbors,
 				final Reducer<PartitionDataWritable, AdapterWithObjectWritable, KEYOUT, VALUEOUT>.Context context,
-				final Map<ByteArrayId, Cluster<VALUEIN>> index )
+				final Map<ByteArrayId, Cluster> index )
 				throws IOException,
 				InterruptedException {
 			if (LOGGER.isTraceEnabled()) {
@@ -93,7 +92,7 @@ public class DBScanMapReduce
 			if (neighbors == null) {
 				return;
 			}
-			Cluster<VALUEIN> cluster = ((ClusterNeighborList) neighbors).getCluster();
+			Cluster cluster = ((ClusterNeighborList) neighbors).getCluster();
 			if (cluster == null) return;
 			if (cluster.size() < minOwners) {
 				LOGGER.trace(
@@ -156,7 +155,7 @@ public class DBScanMapReduce
 	}
 
 	public static class DBScanMapHullReducer extends
-			DBScanMapReducer<ClusterItem, GeoWaveInputKey, ObjectWritable>
+			DBScanMapReducer<GeoWaveInputKey, ObjectWritable>
 	{
 		private String batchID;
 		private int zoomLevel = 1;
@@ -177,16 +176,14 @@ public class DBScanMapReduce
 		protected void preprocess(
 				final Reducer<PartitionDataWritable, AdapterWithObjectWritable, GeoWaveInputKey, ObjectWritable>.Context context,
 				final NNProcessor<Object, ClusterItem> processor,
-				final Map<ByteArrayId, Cluster<ClusterItem>> index )
+				final Map<ByteArrayId, Cluster> index )
 				throws IOException,
 				InterruptedException {
 			if (!this.firstIteration) return;
 
 			processor.process(
-					new ClusterNeighborListFactory<ClusterItem>(
+					new ClusterNeighborListFactory(
 							new PreProcessSingleItemClusterListFactory(
-									this.minOwners,
-									new CoordinateCircleDistanceFn(),
 									index),
 							index),
 					new CompleteNotifier<ClusterItem>() {
@@ -196,20 +193,28 @@ public class DBScanMapReduce
 								ByteArrayId id,
 								ClusterItem value,
 								NeighborList<ClusterItem> list ) {
-							CompressingCluster<ClusterItem, Geometry> cluster = (CompressingCluster<ClusterItem, Geometry>) ((ClusterNeighborList<ClusterItem>) list).getCluster();
-							if (cluster.size() < minOwners) {
+							Cluster cluster = ((ClusterNeighborList) list).getCluster();
+							// this basically excludes points that cannot
+							// contribute to extending the network.
+							// may be a BAD idea.
+							if (cluster.size() < (minOwners - 2)) {
 								processor.remove(id);
 							}
-							else if (cluster.isCompressed()) {
-								value.setGeometry(cluster.get());
+							// this is a condensing component
+							else if (cluster.size() > 200) {
+								cluster.finish();
+								value.setGeometry(cluster.getGeometry());
 								value.setCount(list.size());
 								value.setCompressed();
-								Iterator<ByteArrayId> it = cluster.getLinkedClusters();
+								Iterator<ByteArrayId> it = cluster.getLinkedClusters().iterator();
 								while (it.hasNext()) {
 									ByteArrayId idToRemove = it.next();
 									processor.remove(idToRemove);
 									it.remove();
 								}
+							}
+							else {
+								cluster.clear();
 							}
 							context.progress();
 						}
@@ -220,18 +225,17 @@ public class DBScanMapReduce
 		@Override
 		protected void processSummary(
 				final PartitionData partitionData,
-				final Map<ByteArrayId, Cluster<ClusterItem>> summary,
+				final Map<ByteArrayId, Cluster> summary,
 				final Reducer<PartitionDataWritable, AdapterWithObjectWritable, GeoWaveInputKey, ObjectWritable>.Context context )
 				throws IOException,
 				InterruptedException {
 			final HadoopWritableSerializer<SimpleFeature, FeatureWritable> serializer = outputAdapter.createWritableSerializer();
-			final Set<Cluster<ClusterItem>> processed = new HashSet<Cluster<ClusterItem>>();
-			for (final Map.Entry<ByteArrayId, Cluster<ClusterItem>> entry : summary.entrySet()) {
-				@SuppressWarnings("unchecked")
-				final CompressingCluster<ClusterItem, Geometry> cluster = (CompressingCluster<ClusterItem, Geometry>) entry.getValue();
-				if (!processed.contains(cluster)) {
+			final Set<Cluster> processed = new HashSet<Cluster>();
+			for (final Map.Entry<ByteArrayId, Cluster> entry : summary.entrySet()) {
+				final Cluster cluster = entry.getValue();
+				if (cluster.isCompressed() && !processed.contains(cluster)) {
 					processed.add(cluster);
-					if (!(cluster.get() instanceof Polygon)) {
+					if (!(cluster.getGeometry() instanceof Polygon)) {
 						processed.add(cluster);
 					}
 					final SimpleFeature newPolygonFeature = AnalyticFeature.createGeometryFeature(
@@ -241,7 +245,7 @@ public class DBScanMapReduce
 							cluster.getId().getString(), // name
 							partitionData.getGroupId() != null ? partitionData.getGroupId().toString() : entry.getKey().getString(), // group
 							0.0,
-							cluster.get(),
+							cluster.getGeometry(),
 							new String[0],
 							new double[0],
 							zoomLevel,
@@ -270,13 +274,10 @@ public class DBScanMapReduce
 		}
 
 		public NeighborListFactory<ClusterItem> createNeighborsListFactory(
-				Map<ByteArrayId, Cluster<ClusterItem>> summary ) {
-			return new ClusterNeighborListFactory<ClusterItem>(
+				Map<ByteArrayId, Cluster> summary ) {
+			return new ClusterNeighborListFactory(
 					(firstIteration) ? new SingleItemClusterListFactory(
-							this.minOwners,
-							new CoordinateCircleDistanceFn(),
 							summary) : new ClusterUnionListFactory(
-							new CoordinateCircleDistanceFn(),
 							summary),
 					summary);
 
@@ -293,6 +294,10 @@ public class DBScanMapReduce
 					context);
 
 			super.setup(context);
+
+			DBScanClusterList.getHullTool().setDistanceFnForCoordinate(
+					new CoordinateCircleDistanceFn());
+			DBScanClusterList.setMergeSize(this.minOwners);
 
 			batchID = config.getString(
 					GlobalParameters.Global.BATCH_ID,

@@ -62,7 +62,7 @@ public class DBScanMapReduceTest
 			4326);
 	final Key accumuloKey = null;
 	final NNMapReduce.NNMapper<ClusterItem> nnMapper = new NNMapReduce.NNMapper<ClusterItem>();
-	final NNMapReduce.NNReducer<ClusterItem, GeoWaveInputKey, ObjectWritable, Map<ByteArrayId, Cluster<ClusterItem>>> nnReducer = new DBScanMapReduce.DBScanMapHullReducer();
+	final NNMapReduce.NNReducer<ClusterItem, GeoWaveInputKey, ObjectWritable, Map<ByteArrayId, Cluster>> nnReducer = new DBScanMapReduce.DBScanMapHullReducer();
 
 	@Before
 	public void setUp()
@@ -428,7 +428,9 @@ public class DBScanMapReduceTest
 				4);
 
 		final List<Pair<GeoWaveInputKey, ObjectWritable>> reduceResults = reduceDriver.run();
-		assertTrue(reduceResults.size() == 1);
+		assertEquals(
+				1,
+				reduceResults.size());
 	}
 
 	@Test

@@ -373,7 +373,8 @@ public class MinimalBinDistanceHistogram implements
 		final double mb = lowerCount + (((upperCount - lowerCount) / (upperBoundary - lowerBoundary)) * (val - lowerBoundary));
 		final double s = (((lowerCount + mb) / 2.0) * (val - lowerBoundary)) / (upperBoundary - lowerBoundary);
 		final double r = foundCount + s + (lowerCount / 2.0);
-		return r > 1.0 ? r : (inclusive ? 1.0 : r);
+
+		return r > 1.0 ? r : 1.0;
 	}
 
 	public double cdf(

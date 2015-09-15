@@ -115,7 +115,6 @@ public class FixedBinNumericHistogram implements
 				(val - ((perBinSize * (bin)) + minValue)) / perBinSize);
 		c += (percentageOfLastBin * count[bin]);
 		return c > 0 ? c : (inclusive ? 1.0 : c);
-
 	}
 
 	private double binSize() {

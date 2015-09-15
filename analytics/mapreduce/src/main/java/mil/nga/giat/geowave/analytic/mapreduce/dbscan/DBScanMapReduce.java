@@ -53,11 +53,34 @@ import com.vividsolutions.jts.geom.Polygon;
  * https://en.wikipedia.org/wiki/DBSCAN). This approach does not maintain a
  * queue of viable neighbors to navigate.
  * 
- * Each cluster is a centroid with its neighbors. Clusters are merged if they
- * share neighbors in common and both clusters meet the minimum size
- * constraints.
+ * Clusters are merged if they share neighbors in common and both clusters meet
+ * the minimum size constraints.
  * 
- * Clusters may be made up of points or geometries.
+ * Clusters may be made up of points or geometries. When processing geometries,
+ * the closest two points are included in the cluster, not the entire geometry.
+ * The reason for this is that geometries may span large areas. This technique
+ * has a disadvantage of mis-representing dense segments as a dense set of
+ * points.
+ * 
+ * The design uses two level partitioning, working within the confines of @{link
+ * NNProcessor}. Performance gains and memory constraints are accomplished
+ * through a pre-processing step.
+ * 
+ * Pre-processing first finds dense clusters, replacing each dense cluster with
+ * a concave polygon. Although not very scientific, the condensing process the
+ * minimum condensed cluster size is between 50 and 200, depending on the
+ * setting of the minimum owners. The choice is some what arbitrary. Retaining
+ * individual points for clusters larger than 200 often creates memory concerns.
+ * However, there is little value in condensing below 50 as that indicates a
+ * fairly small cluster, which does not contribute to a performance concern.
+ * Override 'calculateCondensingMinimum ()' to come up with a different
+ * approach.
+ * 
+ * Pre-processing also finds cluster centers that have less than the minimum and tosses those centers.
+ * There is a caution here.  Clusters of this type can fall on the 'edge' of dense clusters,
+ * thus 'tightening' the dense regions.  It does effectively remove outliers. Alter the approach by
+ * over-riding 'calculateTossMinimum()' (e.g. make it a smaller number like 0 or 1).
+ * 
  * 
  */
 public class DBScanMapReduce
@@ -165,6 +188,18 @@ public class DBScanMapReduce
 		private final ObjectWritable output = new ObjectWritable();
 		private boolean firstIteration = true;
 
+		protected int calculateCondensingMinimum() {
+			return Math.max(
+					50,
+					Math.min(
+							200,
+							minOwners * 10));
+		}
+
+		protected int calculateTossMinimum() {
+			return (minOwners - 2);
+		}
+
 		/**
 		 * Find the large clusters and condense them down. Find the points that
 		 * are not reachable to viable clusters and remove them.
@@ -188,6 +223,9 @@ public class DBScanMapReduce
 							index),
 					new CompleteNotifier<ClusterItem>() {
 
+						final int condenseSize = calculateCondensingMinimum();
+						final int tossSize = calculateCondensingMinimum();
+
 						@Override
 						public void complete(
 								ByteArrayId id,
@@ -197,11 +235,11 @@ public class DBScanMapReduce
 							// this basically excludes points that cannot
 							// contribute to extending the network.
 							// may be a BAD idea.
-							if (cluster.size() < (minOwners - 2)) {
+							if (cluster.size() < tossSize) {
 								processor.remove(id);
 							}
 							// this is a condensing component
-							else if (cluster.size() > 200) {
+							else if (cluster.size() > condenseSize) {
 								cluster.finish();
 								value.setGeometry(cluster.getGeometry());
 								value.setCount(list.size());

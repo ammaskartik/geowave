@@ -303,8 +303,8 @@ public class GeoWaveInputFormat<T> extends
 				instance,
 				new Text(
 						tableId));
-		/* end[ACCUMULO_1.5.2] */
-// @formatter:on
+		/*end[ACCUMULO_1.5.2] */
+		// @formatter:on
 		return tabletLocator;
 	}
 
@@ -319,7 +319,7 @@ public class GeoWaveInputFormat<T> extends
 			AccumuloSecurityException,
 			TableNotFoundException,
 			IOException {
-// @formatter:off
+		// @formatter:off
 		/*if[ACCUMULO_1.5.2]
 		final ByteArrayOutputStream backingByteArray = new ByteArrayOutputStream();
 		final DataOutputStream output = new DataOutputStream(
@@ -346,7 +346,7 @@ public class GeoWaveInputFormat<T> extends
 				rangeList,
 				tserverBinnedRanges).isEmpty();
 		/* end[ACCUMULO_1.5.2] */
-// @formatter:on
+		// @formatter:on
 	}
 
 	protected static String getInstanceName(
@@ -654,12 +654,18 @@ public class GeoWaveInputFormat<T> extends
 										statsCache,
 										context),
 								clippedRange);
-						rangeList.add(new RangeLocationPair(
-								clippedRange,
-								location,
-								cardinality < 1 ? 1 : cardinality));
-
-						if ((fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
+						// Use cardinality as a range check. The lower bound is
+						// guaranteed.
+						// Alternative (which is not accurate):
+						// if (!(fullrange.beforeStartKey( range.getEndKey()) ||
+						// fullrange.afterEndKey(range.getStartKey()))) {
+						if (!(fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
+							rangeList.add(new RangeLocationPair(
+									clippedRange,
+									location,
+									cardinality < 1 ? 1 : cardinality));
+						}
+						else {
 							LOGGER.info("Query split outside of range");
 						}
 						if (LOGGER.isTraceEnabled()) LOGGER.warn("Clipped range: " + rangeList.get(

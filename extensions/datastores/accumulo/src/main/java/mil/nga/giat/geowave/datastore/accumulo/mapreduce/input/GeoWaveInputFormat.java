@@ -425,6 +425,11 @@ public class GeoWaveInputFormat<T> extends
 				// increasing the size by 1
 				final IntermediateSplitInfo highestSplit = splits.pollLast();
 				final IntermediateSplitInfo otherSplit = highestSplit.split(statsCache);
+				if (otherSplit == null) {
+					LOGGER.warn("Unable to meet minimum splits");
+					break;
+				}
+				;
 				splits.add(highestSplit);
 				splits.add(otherSplit);
 			}
@@ -763,31 +768,37 @@ public class GeoWaveInputFormat<T> extends
 						maxCardinality);
 
 				final String location = rangeLocationPair.getLocation();
-				final RangeLocationPair newPair = new RangeLocationPair(
-						new Range(
-								rangeLocationPair.getRange().getStartKey(),
-								rangeLocationPair.getRange().isStartKeyInclusive(),
-								new Key(
-										new Text(
-												splitKey)),
-								false),
-						location,
-						targetCardinality - currentCardinality);
+				try {
+					final RangeLocationPair newPair = new RangeLocationPair(
+							new Range(
+									rangeLocationPair.getRange().getStartKey(),
+									rangeLocationPair.getRange().isStartKeyInclusive(),
+									new Key(
+											new Text(
+													splitKey)),
+									false),
+							location,
+							targetCardinality - currentCardinality);
 
-				rangeLocationPair = new RangeLocationPair(
-						new Range(
-								new Key(
-										new Text(
-												splitKey)),
-								true,
-								rangeLocationPair.getRange().getEndKey(),
-								rangeLocationPair.getRange().isEndKeyInclusive()),
-						location,
-						splitCardinality - targetCardinality);
+					rangeLocationPair = new RangeLocationPair(
+							new Range(
+									new Key(
+											new Text(
+													splitKey)),
+									true,
+									rangeLocationPair.getRange().getEndKey(),
+									rangeLocationPair.getRange().isEndKeyInclusive()),
+							location,
+							splitCardinality - targetCardinality);
 
-				return new IndexRangeLocation(
-						newPair,
-						index);
+					return new IndexRangeLocation(
+							newPair,
+							index);
+				}
+				catch (java.lang.IllegalArgumentException ex) {
+					LOGGER.info("Unable to split range: " + ex.getLocalizedMessage());
+					return null;
+				}
 			}
 		}
 
@@ -857,10 +868,12 @@ public class GeoWaveInputFormat<T> extends
 							statsCache.get(next.index),
 							currentCardinality,
 							targetCardinality);
-					addPairForIndex(
-							otherSplitInfo,
-							newSplit.rangeLocationPair,
-							newSplit.index);
+					if (newSplit != null) {
+						addPairForIndex(
+								otherSplitInfo,
+								newSplit.rangeLocationPair,
+								newSplit.index);
+					}
 					addPairForIndex(
 							splitInfo,
 							next.rangeLocationPair,
@@ -886,7 +899,7 @@ public class GeoWaveInputFormat<T> extends
 						split.rangeLocationPair,
 						split.index);
 			}
-			return new IntermediateSplitInfo(
+			return otherSplitInfo.size() == 0 ? null : new IntermediateSplitInfo(
 					otherSplitInfo);
 		}
 

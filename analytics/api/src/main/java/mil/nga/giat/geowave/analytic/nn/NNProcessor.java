@@ -21,28 +21,28 @@ import org.slf4j.LoggerFactory;
  * 
  * (1) Partition added data using a partitioner.
  * 
- * (2) Process data, perform the O(N^2) (e.g. ~ n^2/2) comparisons
- * within those partitions.
+ * (2) Process data, perform the O(N^2) (e.g. ~ n^2/2) comparisons within those
+ * partitions.
  * 
- * Custom plug-ins include 
- * (1) A factory for the neighbor list to track
- * those pairings of data whose distance feel under the provided minimum.
- * (2) A complete notification callback callback for each primary data.
+ * Custom plug-ins include (1) A factory for the neighbor list to track those
+ * pairings of data whose distance feel under the provided minimum. (2) A
+ * complete notification callback callback for each primary data.
  * 
- * The loop algorithms is
- *   For each primary
- *      compare to all remaining primary and all secondary data items
- *      
- * A powerful performance enhancing tool is the inference mechanism associated with the neighborhood
- * lists.  A list can have intelligence to decide that a particular neighbor can be inferred
- * and, therefore, can be removed from the set of primaries to be inspected.  This has no effect on secondaries. 
+ * The loop algorithms is For each primary compare to all remaining primary and
+ * all secondary data items
  * 
- * The processor can be called multiple times, as the 'process' algorithm does not alter its internal state.
- * The notification callback can be used to alter the internal state (e.g. calling 'add' or 'remove' methods).
- * Caution should used to alter internal state within the neighbor list.  
+ * A powerful performance enhancing tool is the inference mechanism associated
+ * with the neighborhood lists. A list can have intelligence to decide that a
+ * particular neighbor can be inferred and, therefore, can be removed from the
+ * set of primaries to be inspected. This has no effect on secondaries.
+ * 
+ * The processor can be called multiple times, as the 'process' algorithm does
+ * not alter its internal state. The notification callback can be used to alter
+ * the internal state (e.g. calling 'add' or 'remove' methods). Caution should
+ * used to alter internal state within the neighbor list.
  * 
  * 
- *
+ * 
  * @param <PARTITION_VALUE>
  * @param <STORE_VALUE>
  * 
@@ -65,6 +65,7 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 	protected final DistanceProfileGenerateFn<?, STORE_VALUE> distanceProfileFn;
 	protected final double maxDistance;
 	protected final PartitionData parentPartition;
+	private int upperBoundPerPartition = 75000;
 
 	/**
 	 * Run State
@@ -104,6 +105,12 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 					singleton,
 					idsSet);
 		}
+		if (idsSet.size() > upperBoundPerPartition) {
+			return null;
+		}
+		if (idsSet.size() == upperBoundPerPartition) {
+			LOGGER.warn("At upper bound on partition.  Increase the bounds or condense the data.");
+		}
 		idsSet.add(itemId);
 
 		Set<PartitionData> partitionSet = idsToPartition.get(itemId);
@@ -141,18 +148,9 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 			final PARTITION_VALUE partitionValue )
 			throws IOException {
 
-		STORE_VALUE value = this.typeConverter.convert(
+		final STORE_VALUE storeValue = this.typeConverter.convert(
 				id,
 				partitionValue);
-
-		if (isPrimary)
-			primaries.put(
-					id,
-					value);
-		else
-			others.put(
-					id,
-					value);
 
 		try {
 			partitioner.partition(
@@ -166,7 +164,17 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 							PartitionData singleton = add(
 									partitionData,
 									id);
-							singleton.setPrimary(partitionData.isPrimary() | singleton.isPrimary());
+							if (singleton != null) {
+								singleton.setPrimary(partitionData.isPrimary() | singleton.isPrimary());
+								if (isPrimary)
+									primaries.put(
+											id,
+											storeValue);
+								else
+									others.put(
+											id,
+											storeValue);
+							}
 						}
 					});
 
@@ -286,5 +294,14 @@ public class NNProcessor<PARTITION_VALUE, STORE_VALUE>
 			}
 		}
 
+	}
+
+	public int getUpperBoundPerPartition() {
+		return upperBoundPerPartition;
+	}
+
+	public void setUpperBoundPerPartition(
+			int upperBoundPerPartition ) {
+		this.upperBoundPerPartition = upperBoundPerPartition;
 	}
 }

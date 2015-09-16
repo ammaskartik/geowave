@@ -50,7 +50,7 @@ public class DBScanJobRunner extends
 	};
 
 	private boolean firstIteration = true;
-	private long memInMB = 4096;
+	private long memInMB = 6096;
 
 	@Override
 	public void configure(
@@ -67,6 +67,9 @@ public class DBScanJobRunner extends
 		final Configuration conf = job.getConfiguration();
 		conf.set(
 				"mapreduce.map.java.opts",
+				"-Xmx" + memInMB + "m");
+		conf.set(
+				"mapreduce.reduce.java.opts",
 				"-Xmx" + memInMB + "m");
 		conf.setLong(
 				"mapred.task.timeout",

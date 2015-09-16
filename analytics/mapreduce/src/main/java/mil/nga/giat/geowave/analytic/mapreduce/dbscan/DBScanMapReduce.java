@@ -46,8 +46,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.geom.Polygon;
-
 /**
  * The approach differs from the approach commonly documented (e.g.
  * https://en.wikipedia.org/wiki/DBSCAN). This approach does not maintain a
@@ -76,10 +74,11 @@ import com.vividsolutions.jts.geom.Polygon;
  * Override 'calculateCondensingMinimum ()' to come up with a different
  * approach.
  * 
- * Pre-processing also finds cluster centers that have less than the minimum and tosses those centers.
- * There is a caution here.  Clusters of this type can fall on the 'edge' of dense clusters,
- * thus 'tightening' the dense regions.  It does effectively remove outliers. Alter the approach by
- * over-riding 'calculateTossMinimum()' (e.g. make it a smaller number like 0 or 1).
+ * Pre-processing also finds cluster centers that have less than the minimum and
+ * tosses those centers. There is a caution here. Clusters of this type can fall
+ * on the 'edge' of dense clusters, thus 'tightening' the dense regions. It does
+ * effectively remove outliers. Alter the approach by over-riding
+ * 'calculateTossMinimum()' (e.g. make it a smaller number like 0 or 1).
  * 
  * 
  */
@@ -224,7 +223,7 @@ public class DBScanMapReduce
 					new CompleteNotifier<ClusterItem>() {
 
 						final int condenseSize = calculateCondensingMinimum();
-						final int tossSize = calculateCondensingMinimum();
+						final int tossSize = calculateTossMinimum();
 
 						@Override
 						public void complete(
@@ -269,19 +268,18 @@ public class DBScanMapReduce
 				InterruptedException {
 			final HadoopWritableSerializer<SimpleFeature, FeatureWritable> serializer = outputAdapter.createWritableSerializer();
 			final Set<Cluster> processed = new HashSet<Cluster>();
-			for (final Map.Entry<ByteArrayId, Cluster> entry : summary.entrySet()) {
-				final Cluster cluster = entry.getValue();
+			final Iterator<Map.Entry<ByteArrayId, Cluster>> clusterIt = summary.entrySet().iterator();
+			while (clusterIt.hasNext()) {
+				final Cluster cluster = clusterIt.next().getValue();
+				clusterIt.remove();
 				if (cluster.isCompressed() && !processed.contains(cluster)) {
 					processed.add(cluster);
-					if (!(cluster.getGeometry() instanceof Polygon)) {
-						processed.add(cluster);
-					}
 					final SimpleFeature newPolygonFeature = AnalyticFeature.createGeometryFeature(
 							outputAdapter.getType(),
 							batchID,
 							UUID.randomUUID().toString(),
 							cluster.getId().getString(), // name
-							partitionData.getGroupId() != null ? partitionData.getGroupId().toString() : entry.getKey().getString(), // group
+							partitionData.getGroupId() != null ? partitionData.getGroupId().toString() : cluster.getId().getString(), // group
 							0.0,
 							cluster.getGeometry(),
 							new String[0],
